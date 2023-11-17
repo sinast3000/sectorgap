@@ -4,15 +4,7 @@
 \alias{estimation_results}
 \title{Statistics for sampled parameters and states.}
 \usage{
-estimation_results(
-  HPDIprob = 0.68,
-  model,
-  sys,
-  settings,
-  mcmc,
-  fit = NULL,
-  ...
-)
+estimation_results(HPDIprob = 0.68, model, settings, mcmc, fit = NULL, ...)
 }
 \arguments{
 \item{HPDIprob}{probability of highest posterior density interval, the
@@ -36,5 +28,5 @@ specific HPDI and function (e.g. mean or median).
 }
 \details{
 If \code{fit} is supplied, the arguments
-\code{model, sys, settings, mcmc} will be taken from this object.
+\code{model, settings, mcmc} will be taken from this object.
 }

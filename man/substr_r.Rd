@@ -6,6 +6,11 @@
 \usage{
 substr_r(x, n)
 }
+\arguments{
+\item{x}{character string}
+
+\item{n}{number of letters to extract}
+}
 \description{
 Extracts last letter in string
 }

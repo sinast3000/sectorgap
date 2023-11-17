@@ -13,29 +13,43 @@
 #' @param plot_end end of x axis in years, e.g., \code{2010.25}
 #' @param file_path file path for plots
 #' @param title boolean indicating if plots should contain titles
-#' @param print boolean indicating if plots should be printed
-#' @param save boolean indicating if plots should be saved
+#' @param save boolean indicating if plots should be saved, if \code{FALSE}, the 
+#'   plots will be printed instead , default is \code{save = TRUE}
 #' @param device character string with format used in \code{ggsave}
+#' @param width plot width in \code{units}, for grid plots adjusted for the 
+#'   number of plot columns \code{n_col}
+#' @param height plot height in \code{units}, for grid plots adjusted for the 
+#'   number of plot rows implied by \code{n_col}
+#' @param units units for plot size (\code{"in", "cm", "mm", or "px"})
 #' @inheritParams define_ssmodel
 #' 
 #' @return nothing
 #' 
 #' @import dplyr
+#' @importFrom grDevices hcl.colors
+#' @importFrom stats aggregate
 create_plots <- function(
   df,
   settings,
   n_col = 3,
   n_sep = 5,
-  highighted_area = NULL,
+  highlighted_area = NULL,
   plot_start = NULL,
   plot_end = NULL,
   file_path = NULL,
   title = TRUE,
-  print = TRUE,
   save = TRUE,
-  device = "jpg"
+  device = "jpg",
+  width = 10,
+  height = 3,
+  units = "in"
 ) {
 
+  # to avoid RMD check note
+  group <- type <- obs_name <- series_label <- value <- obs <- lb <- ub <- 
+    HPDI <- series <- . <- sector <- idiosynchratic <- gap <- common <- 
+    contr <- NULL
+  
   # settings to data frames
   df_set <- settings_to_df(x = settings)
   
@@ -45,12 +59,12 @@ create_plots <- function(
   if (is.null(plot_end)) plot_end <- ceiling(max(dates)) + ceiling(max(dates)) %% n_sep - 1
 
   # manipulate highighted area such they are drawn on borders
-  highlight <- !is.null(highighted_area)
+  highlight <- !is.null(highlighted_area)
   if (highlight) {
-    idx <- apply(highighted_area, 1, function(x) plot_start >= x[1] & plot_start <= x[2])
-    highighted_area[idx, 1] <- plot_start
-    idx <- apply(highighted_area, 1, function(x) plot_end >= x[1] & plot_end <= x[2])
-    highighted_area[idx, 2] <- plot_end
+    idx <- apply(highlighted_area, 1, function(x) plot_start >= x[1] & plot_start <= x[2])
+    highlighted_area[idx, 1] <- plot_start
+    idx <- apply(highlighted_area, 1, function(x) plot_end >= x[1] & plot_end <= x[2])
+    highlighted_area[idx, 2] <- plot_end
   }
   
   # start of x ticks
@@ -122,64 +136,69 @@ create_plots <- function(
   )
   
   for (px in 1:length(plotl)) {
-    if (length(plotl[[px]]$obs_name) > 0) {
-    
-    try({
-      tab <- df %>% 
-        filter(type %in% plotl[[px]]$type, obs_name %in% plotl[[px]]$obs_name) %>%
-        mutate(series_label = factor(series_label, levels = series_label, labels = series_label))
+
+    tab <- df %>% 
+      filter(type %in% plotl[[px]]$type, obs_name %in% plotl[[px]]$obs_name) %>%
+      mutate(series_label = factor(series_label, levels = series_label, labels = series_label))
+      
+    if (NROW(tab) > 0) {
+      try({
+        p <- ggplot(data = tab) +
+          facet_wrap( ~ series_label, ncol = n_col, scales = plotl[[px]]$scales)
+        if (highlight) {
+          p <- p + 
+            geom_rect(data = highlighted_area, aes(xmin=start, xmax=end, ymin=-Inf, ymax=Inf),
+                      fill='grey80', alpha = 0.2)
+        }
+        p <- p +
+          geom_hline(yintercept = plotl[[px]]$hline, lwd = 0.05) +
+          geom_line(data = tab, aes(x = as.numeric(date), y = value, group = series_label, color = series_label),
+                    linewidth = 0.5, color = "black") +
+          geom_line(data = tab, aes(x = as.numeric(date), y = obs, group = series_label, color = series_label),
+                    linewidth = 0.5, linetype = 5, color = "black") +
+          geom_ribbon(data = tab, aes(x = as.numeric(date), ymin = lb, ymax = ub, fill = paste0(HPDI, "% HPDI")), 
+                      fill = "grey12", alpha = 0.2) +
+          labs(title = NULL, x = NULL, y = NULL)  +
+          theme_minimal() +
+          scale_x_continuous(
+            limits = c(plot_start, plot_end - 0.25), 
+            breaks = seq(tick_start, plot_end, n_sep), 
+            expand = expansion(mult = 0.005, add = 0)
+          ) +
+          scale_linewidth_manual(values = 0.8) +
+          theme(legend.position="bottom",
+                panel.grid.major.x = element_blank(),
+                panel.border = element_rect(fill = NA),
+                text = element_text(size=10),
+                axis.ticks.x = element_line(),
+                panel.grid.minor.x = element_blank(),
+                panel.grid.minor.y = element_blank()) 
+        if (title) p <- p + labs(title = plotl[[px]]$title)
         
-      
-      p <- ggplot(data = tab) +
-        facet_wrap( ~ series_label, ncol = n_col, scales = plotl[[px]]$scales)
-      if (highlight) {
-        p <- p + 
-          geom_rect(data = highighted_area, aes(xmin=start, xmax=end, ymin=-Inf, ymax=Inf),
-                    fill='grey80', alpha = 0.2)
-      }
-      p <- p +
-        geom_hline(yintercept = plotl[[px]]$hline, lwd = 0.05) +
-        geom_line(data = tab, aes(x = as.numeric(date), y = value, group = series_label, color = series_label),
-                  linewidth = 0.5, color = "black") +
-        geom_line(data = tab, aes(x = as.numeric(date), y = obs, group = series_label, color = series_label),
-                  linewidth = 0.5, linetype = 5, color = "black") +
-        geom_ribbon(data = tab, aes(x = as.numeric(date), ymin = lb, ymax = ub, fill = paste0(HPDI, "% HPDI")), 
-                    fill = "grey12", alpha = 0.2) +
-        labs(title = NULL, x = NULL, y = NULL)  +
-        theme_minimal() +
-        scale_x_continuous(
-          limits = c(plot_start, plot_end - 0.25), 
-          breaks = seq(tick_start, plot_end, n_sep), 
-          expand = expansion(mult = 0.005, add = 0)
-        ) +
-        scale_linewidth_manual(values = 0.8) +
-        theme(legend.position="bottom",
-              panel.grid.major.x = element_blank(),
-              panel.border = element_rect(fill = NA),
-              text = element_text(size=10),
-              axis.ticks.x = element_line(),
-              panel.grid.minor.x = element_blank(),
-              panel.grid.minor.y = element_blank()) 
-      if (title) p <- p + labs(title = plotl[[px]]$title)
-      
-      if (print) print(p)
-      if (save) {
-        n_p <- tab %>% select(series) %>% distinct %>% pull %>% length
-        ggsave(
-          filename = file.path(file_path, paste0(gsub(" \\(in.*", "", paste0("separate_", plotl[[px]]$title)), ".", device)), 
-          plot = p, 
-          width = 0.5 + 9.5 / n_col * min(n_p, n_col),#10, 
-          height = 2.5 * ceiling(n_p / n_col),
-          device = device
-        )
-      }
-      dev.off()
-    })
+        if (save) {
+          n_p <- tab %>% select(series) %>% distinct %>% pull %>% length
+          filename <- file.path(
+            file_path, 
+            gsub(" \\(in.*", "", paste0(plotl[[px]]$title)) %>%
+              gsub(" ", "_", .) %>%
+              paste0("separate_", ., ".", device)
+          )
+          ggsave(
+            filename = filename,
+            plot = p, 
+            width = width * 0.05 + (width * 0.95) / n_col * min(n_p, n_col), 
+            height = height * ceiling(n_p / n_col),
+            units = units,
+            device = device
+          )
+        } else {
+          print(p)
+        }
+      })
     }
-  
+
   }
-
-
+  
   # ---------------------------------------------------------------------------
   # combined plots
   
@@ -219,54 +238,59 @@ create_plots <- function(
     })
   )
   
-  
   for (px in 1:length(plotl)) {
-    if (length(plotl[[px]]$obs_name) > 0) {
-      
-    try({
-      tab <- df %>% 
-        filter(type %in% plotl[[px]]$type, obs_name %in% plotl[[px]]$obs_name)
-      
-      p <- ggplot()
-      if (highlight) {
-        p <- p + 
-          geom_rect(data = highighted_area, aes(xmin=start, xmax=end, ymin=-Inf, ymax=Inf),
-                    fill='grey80', alpha = 0.2)
-      }
-      p <- p +
-        geom_hline(yintercept = plotl[[px]]$hline, lwd = 0.05) +
-        geom_line(data = tab, aes(x = as.numeric(date), y = value, color = series_label),
-                  linewidth = 0.5) +
-        labs(title = NULL, x = NULL, y = NULL)  +
-        theme_minimal() +
-        scale_color_manual(values = plotl[[px]]$color) +
-        scale_x_continuous(
-          limits = c(plot_start, plot_end - 0.25), 
-          breaks = seq(tick_start, plot_end, n_sep), 
-          expand = expansion(mult = 0.005, add = 0)
-        ) +
-        theme(legend.position="bottom",
-              panel.grid.major.x = element_blank(),
-              panel.border = element_rect(fill = NA),
-              text = element_text(size=10),
-              axis.ticks.x = element_line(),
-              panel.grid.minor.x = element_blank(),
-              panel.grid.minor.y = element_blank()) +
-        guides(color = guide_legend(ncol = n_col, title = ""))
-      if (title) p <- p + labs(title = plotl[[px]]$title)
 
-      if (print) print(p)
-      if (save) {
-        ggsave(
-          filename = file.path(file_path, paste0(gsub(" \\(in.*", "", paste0("combined_", plotl[[px]]$title)), ".", device)), 
-          plot = p, 
-          width = 10, 
-          height = 1 + 3,
-          device = device
-        )
-      }
-      dev.off()
-    })
+    tab <- df %>% 
+      filter(type %in% plotl[[px]]$type, obs_name %in% plotl[[px]]$obs_name)
+    if (NROW(tab) > 0) {
+      try({
+        p <- ggplot()
+        if (highlight) {
+          p <- p + 
+            geom_rect(data = highlighted_area, aes(xmin=start, xmax=end, ymin=-Inf, ymax=Inf),
+                      fill='grey80', alpha = 0.2)
+        }
+        p <- p +
+          geom_hline(yintercept = plotl[[px]]$hline, lwd = 0.05) +
+          geom_line(data = tab, aes(x = as.numeric(date), y = value, color = series_label),
+                    linewidth = 0.5) +
+          labs(title = NULL, x = NULL, y = NULL)  +
+          theme_minimal() +
+          scale_color_manual(values = plotl[[px]]$color) +
+          scale_x_continuous(
+            limits = c(plot_start, plot_end - 0.25), 
+            breaks = seq(tick_start, plot_end, n_sep), 
+            expand = expansion(mult = 0.005, add = 0)
+          ) +
+          theme(legend.position="bottom",
+                panel.grid.major.x = element_blank(),
+                panel.border = element_rect(fill = NA),
+                text = element_text(size=10),
+                axis.ticks.x = element_line(),
+                panel.grid.minor.x = element_blank(),
+                panel.grid.minor.y = element_blank()) +
+          guides(color = guide_legend(ncol = n_col, title = ""))
+        if (title) p <- p + labs(title = plotl[[px]]$title)
+  
+        if (save) {
+          filename <- file.path(
+            file_path, 
+            gsub(" \\(in.*", "", paste0(plotl[[px]]$title)) %>%
+              gsub(" ", "_", .) %>%
+              paste0("combined_", ., ".", device)
+          )
+          ggsave(
+            filename = filename,
+            plot = p, 
+            width = width, 
+            height = height,
+            units = units,
+            device = device
+          )
+        } else {
+          print(p)
+        }
+      })
     }
   }
 
@@ -290,79 +314,85 @@ create_plots <- function(
   name_common <- "shared"
   
   for (px in 1:length(plotl)) {
-    if (length(plotl[[px]]$obs_name) > 0) {
+   
+    tab1 <- df %>% 
+      filter(type %in% "cycle", obs_name %in% plotl[[px]]$obs_name) %>%
+      mutate(idiosynchratic = value) %>%
+      select(date, obs_name, sector, series_label, idiosynchratic) 
+    tab2 <- df %>% 
+      filter(type %in% "gap", obs_name %in% plotl[[px]]$obs_name) %>%
+      mutate(gap = value) %>%
+      full_join(tab1, tab2, by = c("date", "obs_name", "sector", "series_label")) %>%
+      mutate(common = gap - idiosynchratic) %>%
+      select(date, obs_name, sector, series_label, common, gap) 
+    
+    tab <- tab1 %>%
+      rename(., value = idiosynchratic) %>%
+      mutate(type = "idiosynchratic") %>%
+      full_join(., df, by = c("date", "obs_name", "sector", "series_label", "type", "value"))
+    tab <- tab2 %>%
+      rename(., value = common) %>%
+      mutate(type = "common") %>%
+      full_join(., tab, by = c("date", "obs_name", "sector", "series_label", "type", "value"))
+    tab <- tab %>%
+      filter(type %in% c("common", "idiosynchratic"))
+    tab$type[tab$type == "common"] <- name_common
+    
+    if (NROW(tab) > 0) {
+      try({
       
-    try({
-      tab1 <- df %>% 
-        filter(type %in% "cycle", obs_name %in% plotl[[px]]$obs_name) %>%
-        mutate(idiosynchratic = value) %>%
-        select(date, obs_name, sector, series_label, idiosynchratic) 
-      tab2 <- df %>% 
-        filter(type %in% "gap", obs_name %in% plotl[[px]]$obs_name) %>%
-        mutate(gap = value) %>%
-        full_join(tab1, tab2, by = c("date", "obs_name", "sector", "series_label")) %>%
-        mutate(common = gap - idiosynchratic) %>%
-        select(date, obs_name, sector, series_label, common, gap) 
-      
-      tab <- tab1 %>%
-        rename(., value = idiosynchratic) %>%
-        mutate(type = "idiosynchratic") %>%
-        full_join(., df, by = c("date", "obs_name", "sector", "series_label", "type", "value"))
-      tab <- tab2 %>%
-        rename(., value = common) %>%
-        mutate(type = "common") %>%
-        full_join(., tab, by = c("date", "obs_name", "sector", "series_label", "type", "value"))
-      tab <- tab %>%
-        filter(type %in% c("common", "idiosynchratic"))
-      tab$type[tab$type == "common"] <- name_common
-      
-      
-      p <- ggplot(data = tab) +
-        facet_wrap( ~ series_label, ncol = n_col, scales = plotl[[px]]$scales)
-      if (highlight) {
-        p <- p + 
-          geom_rect(data = highighted_area, aes(xmin=start, xmax=end, ymin=-Inf, ymax=Inf),
-                    fill='grey80', alpha = 0.2)
-      }
-      p <- p +
-        geom_hline(yintercept = 0, lwd = 0.05) +
-        geom_bar(data = tab, aes(y = value, x = as.numeric(date), fill = type), 
-                 stat = "identity") +
-        geom_line(data = tab %>% filter(type == name_common), aes(x = as.numeric(date), y = gap, group = series_label, color = series_label),
-                  linewidth = 0.5, color = "black") +
-        labs(title = NULL, x = NULL, y = NULL)  +
-        theme_minimal() +
-        scale_fill_manual(values = c("grey60", "grey30")) +
-        scale_x_continuous(
-          limits = c(plot_start, plot_end - 0.25), 
-          breaks = seq(tick_start, plot_end, n_sep), 
-          expand = expansion(mult = 0.005, add = 0)
-        ) +
-        scale_linewidth_manual(values = 0.8) +
-        theme(legend.position="bottom",
-              panel.grid.major.x = element_blank(),
-              panel.border = element_rect(fill = NA),
-              text = element_text(size=10),
-              axis.ticks.x = element_line(),
-              panel.grid.minor.x = element_blank(),
-              panel.grid.minor.y = element_blank())  +
-        guides(fill = guide_legend(title = ""))
-      if (title) p <- p + labs(title = plotl[[px]]$title)
-      
-      
-      if (print) print(p)
-      if (save) {
-        n_p <- tab %>% select(series_label) %>% distinct %>% pull %>% length
-        ggsave(
-          filename = file.path(file_path, paste0(gsub(" \\(in.*", "", paste0("decomposition_", plotl[[px]]$title)), ".", device)), 
-          plot = p, 
-          width = 0.5 + 9.5 / n_col * min(n_p, n_col),#10, 
-          height = 1 + 2 * ceiling(n_p / n_col),
-          device = device
-        )
-      }
-      dev.off()
-    })
+        p <- ggplot(data = tab) +
+          facet_wrap( ~ series_label, ncol = n_col, scales = plotl[[px]]$scales)
+        if (highlight) {
+          p <- p + 
+            geom_rect(data = highlighted_area, aes(xmin=start, xmax=end, ymin=-Inf, ymax=Inf),
+                      fill='grey80', alpha = 0.2)
+        }
+        p <- p +
+          geom_hline(yintercept = 0, lwd = 0.05) +
+          geom_bar(data = tab, aes(y = value, x = as.numeric(date), fill = type), 
+                   stat = "identity") +
+          geom_line(data = tab %>% filter(type == name_common), aes(x = as.numeric(date), y = gap, group = series_label, color = series_label),
+                    linewidth = 0.5, color = "black") +
+          labs(title = NULL, x = NULL, y = NULL)  +
+          theme_minimal() +
+          scale_fill_manual(values = c("grey60", "grey30")) +
+          scale_x_continuous(
+            limits = c(plot_start, plot_end - 0.25), 
+            breaks = seq(tick_start, plot_end, n_sep), 
+            expand = expansion(mult = 0.005, add = 0)
+          ) +
+          scale_linewidth_manual(values = 0.8) +
+          theme(legend.position="bottom",
+                panel.grid.major.x = element_blank(),
+                panel.border = element_rect(fill = NA),
+                text = element_text(size=10),
+                axis.ticks.x = element_line(),
+                panel.grid.minor.x = element_blank(),
+                panel.grid.minor.y = element_blank())  +
+          guides(fill = guide_legend(title = ""))
+        if (title) p <- p + labs(title = plotl[[px]]$title)
+        
+        if (save) {
+          n_p <- tab %>% select(series_label) %>% distinct %>% pull %>% length
+          filename <- file.path(
+            file_path, 
+            gsub(" \\(in.*", "", paste0(plotl[[px]]$title)) %>%
+              gsub(" ", "_", .) %>%
+              paste0("decomposition_", ., ".", device)
+          )
+          ggsave(
+            filename = filename,
+            plot = p, 
+            width = width * 0.05 + (width * 0.95) / n_col * min(n_p, n_col), 
+            height = height * ceiling(n_p / n_col),
+            units = units,
+            device = device
+          )
+        } else {
+          print(p)
+        }
+      })
     }
   }
   
@@ -408,60 +438,65 @@ create_plots <- function(
   )
 
   for (px in 1:length(plotl)) {
-    if (length(plotl[[px]]$obs_name) > 1) {
-      
-    try({
-      tab <- df %>% 
-        filter(type %in% plotl[[px]]$type, obs_name %in% plotl[[px]]$obs_name) 
-      
-      p <- ggplot()
-      if (highlight) {
-        p <- p + 
-          geom_rect(data = highighted_area, aes(xmin=start, xmax=end, ymin=-Inf, ymax=Inf),
-                    fill='grey80', alpha = 0.2)
-      }
-      p <- p +
-        geom_hline(yintercept = 0, lwd = 0.05) +
-        geom_bar(data = tab, aes(y = contr, x = as.numeric(date), fill = series_label), 
-                 stat = "identity") +
-        geom_line(data = tab %>% select(contr) %>% aggregate(by = list(date = tab$date), FUN = sum), 
-                  aes(x = as.numeric(date), y = contr),
-                  linewidth = 0.75, color = "black") +
-        labs(title = NULL, x = NULL, y = NULL)  +
-        theme_minimal() +
-        scale_fill_manual(values = c(
-          plotl[[px]]$color[1:(length(plotl[[px]]$obs_name) - 1)],
-          plotl[[px]]$color[length(plotl[[px]]$color)]
-        )) +
-        scale_x_continuous(
-          limits = c(plot_start, plot_end - 0.25), 
-          breaks = seq(tick_start, plot_end, n_sep), 
-          expand = expansion(mult = 0.005, add = 0)
-        ) +
-        scale_linewidth_manual(values = 0.8) +
-        theme(legend.position="bottom",
-              panel.grid.major.x = element_blank(),
-              panel.border = element_rect(fill = NA),
-              text = element_text(size=10),
-              axis.ticks.x = element_line(),
-              panel.grid.minor.x = element_blank(),
-              panel.grid.minor.y = element_blank())  +
-        guides(fill = guide_legend(ncol = 4, title = ""))
-      if (title) p <- p + labs(title = plotl[[px]]$title)
-      
-      
-      if (print) print(p)
-      if (save) { 
-        ggsave(
-          filename = file.path(file_path, paste0(gsub(" \\(in.*", "", paste0("decomposition_", plotl[[px]]$title)), ".", device)), 
-          plot = p, 
-          width = 10, 
-          height = 1 + 2.5 + 1,
-          device = device
-        )
-      }
-      dev.off()
-    })
+
+    tab <- df %>% 
+      filter(type %in% plotl[[px]]$type, obs_name %in% plotl[[px]]$obs_name) 
+    if (NROW(tab) > 0) {
+      try({
+        p <- ggplot()
+        if (highlight) {
+          p <- p + 
+            geom_rect(data = highlighted_area, aes(xmin=start, xmax=end, ymin=-Inf, ymax=Inf),
+                      fill='grey80', alpha = 0.2)
+        }
+        p <- p +
+          geom_hline(yintercept = 0, lwd = 0.05) +
+          geom_bar(data = tab, aes(y = contr, x = as.numeric(date), fill = series_label), 
+                   stat = "identity") +
+          geom_line(data = tab %>% select(contr) %>% aggregate(by = list(date = tab$date), FUN = sum), 
+                    aes(x = as.numeric(date), y = contr),
+                    linewidth = 0.75, color = "black") +
+          labs(title = NULL, x = NULL, y = NULL)  +
+          theme_minimal() +
+          scale_fill_manual(values = c(
+            plotl[[px]]$color[1:(length(plotl[[px]]$obs_name) - 1)],
+            plotl[[px]]$color[length(plotl[[px]]$color)]
+          )) +
+          scale_x_continuous(
+            limits = c(plot_start, plot_end - 0.25), 
+            breaks = seq(tick_start, plot_end, n_sep), 
+            expand = expansion(mult = 0.005, add = 0)
+          ) +
+          scale_linewidth_manual(values = 0.8) +
+          theme(legend.position="bottom",
+                panel.grid.major.x = element_blank(),
+                panel.border = element_rect(fill = NA),
+                text = element_text(size=10),
+                axis.ticks.x = element_line(),
+                panel.grid.minor.x = element_blank(),
+                panel.grid.minor.y = element_blank())  +
+          guides(fill = guide_legend(ncol = 4, title = ""))
+        if (title) p <- p + labs(title = plotl[[px]]$title)
+        
+        if (save) { 
+          filename <- file.path(
+            file_path, 
+            gsub(" \\(in.*", "", paste0(plotl[[px]]$title)) %>%
+              gsub(" ", "_", .) %>%
+              paste0("decomposition_", ., ".", device)
+          )
+          ggsave(
+            filename = filename,
+            plot = p, 
+            width = width,
+            height = height,
+            units = units,
+            device = device
+          )
+        } else {
+          print(p)
+        }
+      })
     }
     
   }

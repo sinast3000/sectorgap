@@ -25,7 +25,7 @@
 estimate_ssmodel <- function(
   model, 
   settings, 
-  prior = initializePrior(model), 
+  prior = initialize_prior(model), 
   R = 10000, 
   burnin = 0.5, 
   thin = 1, 
@@ -133,7 +133,7 @@ estimate_ssmodel <- function(
       lx <- hlp$step2AR[[x]]
       
       pars[c(lx$const, lx$phi)] <- .postARp_phi(
-        Y = state_smoothed[, lx$variable], 
+        Y = state_smoothed[, lx$state], 
         phi = pars[lx$phi], 
         phiDistr = distrPar[, lx$phi, drop = FALSE], 
         sigma = pars[lx$var_cycle], 
@@ -303,12 +303,16 @@ compute_gaps <- function(
 #' Gibbs sampler.
 #'
 #' @inheritParams update_ssmodel
+#' @param endo character vector of endogenous variable names
 #' 
 helper_posterior_assignment <- function(
   model,
   df_set, 
   endo
 ) {
+  
+  # to avoid RMD check note
+  type <- prior <- NULL
   
   # helper list for posterior draws
   hlp <- list(

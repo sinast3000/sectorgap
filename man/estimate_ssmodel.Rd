@@ -8,7 +8,7 @@ by Bayesian methods using a Gibbs sampling procedure.}
 estimate_ssmodel(
   model,
   settings,
-  prior = initializePrior(model),
+  prior = initialize_prior(model),
   R = 10000,
   burnin = 0.5,
   thin = 1,

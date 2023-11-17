@@ -66,7 +66,7 @@ draw_trend_innovations <- function(
     start = start(state) + c(0, 1), 
     frequency = frequency(state)
   )
-  eps <- eps[, paste0("state.", df_var$variable)]
+  eps <- eps[, paste0("state.", df_var$state)]
   
   # initialize    
   n_t <- ncol(eps)
@@ -118,6 +118,7 @@ draw_trend_innovations <- function(
 #' @return A named vector of drawn parameters.
 #' 
 #' @importFrom zoo na.trim
+#' @importFrom stats rgamma
 #' 
 #' @keywords internal
 .postRegression <- function(
@@ -224,6 +225,8 @@ draw_trend_innovations <- function(
 #' @details See "Chib, Siddhartha. "Bayes regression with autoregressive 
 #'  errors: A Gibbs sampling approach." Journal of econometrics 58.3 (1993): 
 #'  275-294."
+#'  
+#' @importFrom stats rgamma
 .postARp <- function(Y, phi, phiDistr, sigma, sigmaDistr, const = NULL, constDistr = NULL) {
 
   # last draw

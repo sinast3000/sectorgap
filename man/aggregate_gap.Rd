@@ -9,7 +9,6 @@ aggregate_gap(
   tsl_t,
   tsl_g,
   idx,
-  gap,
   error_name = "gap_error",
   idx_neg = NULL,
   previous_year = TRUE
@@ -25,6 +24,11 @@ aggregate_gap(
 \item{idx}{index of aggregate}
 
 \item{error_name}{character string with name for aggregation error}
+
+\item{idx_neg}{index of negative sub sectors}
+
+\item{previous_year}{boolean indicating if previous year prices should be
+used instead of pervious period prices}
 }
 \value{
 A multiple time series object containing the contributions

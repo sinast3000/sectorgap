@@ -19,6 +19,9 @@ define_ssmodel <- function(
   weightl = NULL
 ){
 
+  # to avoid RMD check note
+  variable <- type <- max_lag <- loading_state <- parameter_name <- NULL
+  
   # convert to time series list
   tsl <- as.list(tsm)
   
@@ -37,7 +40,7 @@ define_ssmodel <- function(
     endo <- c(endo, paste0("constr_", df$type, "_", df$group))
     weightl[[df$group]] <- window(weightl[[df$group]], start = start(tsm), end = end(tsm), extend = TRUE)
     constr <- TRUE 
-    tsl <- c(tsl, list(ts_c(c = 0, ts = tsm)))
+    tsl <- c(tsl, list(ts_c(c = 0, tsm = tsm)))
     names(tsl)[length(tsl)] <- paste0("constr_", df$type, "_", df$group)
   }
 
@@ -199,8 +202,8 @@ update_ssmodel <- function(
   names_par <- names(pars)
   
   # 1a) variances 
-  target_order <- rownames(model$R[,,1])[rownames(model$R[,,1]) %in% df_set$variance$variable]
-  df <- df_set$variance[match(target_order, df_set$variance$variable), ]
+  target_order <- rownames(model$R[,,1])[rownames(model$R[,,1]) %in% df_set$variance$state]
+  df <- df_set$variance[match(target_order, df_set$variance$state), ]
   diag(model$Q[, , 1]) <- pars[df$parameter_name]
   
   # 1b) covariances
@@ -217,8 +220,8 @@ update_ssmodel <- function(
   # 2) constants
   loc <- list()
   for (ix in seq_len(NROW(df_set$const))) {
-    loc$T1 <- df_set$const$variable[ix]
-    loc$T2 <- df_set$const$variable_lag[ix]
+    loc$T1 <- df_set$const$state[ix]
+    loc$T2 <- df_set$const$state_lag[ix]
     model$T[loc$T1, loc$T2, ] <- pars[df_set$const$parameter_name[ix]]
   }
 
@@ -251,8 +254,8 @@ update_ssmodel <- function(
 
   # 4) cycle autoregressive parameters in T
   for (ix in seq_len(NROW(df_set$AR))) {
-    loc$T1 <- df_set$AR$variable[ix]
-    loc$T2 <- df_set$AR$variable_lag[ix]
+    loc$T1 <- df_set$AR$state[ix]
+    loc$T2 <- df_set$AR$state_lag[ix]
     model$T[loc$T1, loc$T2, ] <- pars[df_set$AR$parameter_name[ix]]
   }
 

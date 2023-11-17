@@ -9,14 +9,16 @@ create_plots(
   settings,
   n_col = 3,
   n_sep = 5,
-  highighted_area = NULL,
+  highlighted_area = NULL,
   plot_start = NULL,
   plot_end = NULL,
   file_path = NULL,
   title = TRUE,
-  print = TRUE,
   save = TRUE,
-  device = "jpg"
+  device = "jpg",
+  width = 10,
+  height = 3,
+  units = "in"
 )
 }
 \arguments{
@@ -28,6 +30,10 @@ create_plots(
 
 \item{n_sep}{increments of x axis ticks in years}
 
+\item{highlighted_area}{data frame with two columns called \code{start} and
+\code{end} containing start and end date, e.g. \code{1990.25} and
+\code{1992.75} for 1990 Q2 until 1992 Q4}
+
 \item{plot_start}{start of x axis in years, e.g., \code{1990.5}}
 
 \item{plot_end}{end of x axis in years, e.g., \code{2010.25}}
@@ -36,15 +42,18 @@ create_plots(
 
 \item{title}{boolean indicating if plots should contain titles}
 
-\item{print}{boolean indicating if plots should be printed}
-
-\item{save}{boolean indicating if plots should be saved}
+\item{save}{boolean indicating if plots should be saved, if \code{FALSE}, the
+plots will be printed instead , default is \code{save = TRUE}}
 
 \item{device}{character string with format used in \code{ggsave}}
 
-\item{highlighted_area}{data frame with two columns called \code{start} and
-\code{end} containing start and end date, e.g. \code{1990.25} and
-\code{1992.75} for 1990 Q2 until 1992 Q4}
+\item{width}{plot width in \code{units}, for grid plots adjusted for the
+number of plot columns \code{n_col}}
+
+\item{height}{plot height in \code{units}, for grid plots adjusted for the
+number of plot rows implied by \code{n_col}}
+
+\item{units}{units for plot size (\code{"in", "cm", "mm", or "px"})}
 }
 \value{
 nothing

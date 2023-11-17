@@ -76,7 +76,7 @@ fit <- estimate_ssmodel(
 #   HPDIprob = 0.85
 # )
 
-save(fit, model, set, file = "inst/demo_results.RData")
+# save(fit, model, set, file = "inst/results/demo_results.RData")
 
 # PLOTS ----------------------------------------------------------------------------
 
@@ -91,14 +91,15 @@ df <- prepare_output(
 
 # create basic time series plots
 create_plots(
-  highighted_area = recessions,
+  highlighted_area = recessions,
   n_col = 3,
   df = df, 
   settings = set, 
   file_path = "inst/fig", 
   # plot_start = 1992, 
   # plot_end = 2023.25,
-  title = TRUE
+  title = TRUE,
+  save = TRUE
 )
 
 plot_densities(

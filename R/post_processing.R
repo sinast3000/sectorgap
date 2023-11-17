@@ -17,6 +17,7 @@
 #' @param transformed boolean indicating if the transformed series should be 
 #'   used.
 #' @inheritParams define_ssmodel
+#' @inheritParams estimate_ssmodel
 #' 
 #' @return A tibble with results in long format.
 #' 
@@ -28,13 +29,17 @@ prepare_output <- function(
   tsm_p, 
   settings, 
   estimate = "median", 
-  HPDI = 68, 
+  HPDIprob = 0.68, 
   transformed = TRUE
 ) {
   
-  settings <- fit$settings
+  # to avoid RMD check note
+  . <- variable <- group <- group_label <- variable_label <- obs_name <- NULL
+  
+  HPDI <- HPDIprob * 100  
   
   # settings to data frames
+  settings <- fit$settings
   df_set <- settings_to_df(x = settings)
   
   # chose mean or median estimates
@@ -187,7 +192,10 @@ prepare_output <- function(
 #' @param tsl_t time series list with trends
 #' @param tsl_g time series list with gaps
 #' @param idx index of aggregate
+#' @param idx_neg index of negative sub sectors
 #' @param error_name character string with name for aggregation error
+#' @param previous_year boolean indicating if previous year prices should be 
+#'   used instead of pervious period prices
 #' 
 #' @return A multiple time series object containing the contributions
 #' 
@@ -197,7 +205,6 @@ aggregate_gap <- function(
   tsl_t, 
   tsl_g, 
   idx,
-  gap,
   error_name = "gap_error",
   idx_neg = NULL,
   previous_year = TRUE

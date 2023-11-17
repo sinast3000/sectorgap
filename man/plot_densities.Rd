@@ -9,9 +9,12 @@ plot_densities(
   file_path,
   n_col = 4,
   alpha = 0.05,
-  print = TRUE,
   save = TRUE,
-  df_labels = NULL
+  title = TRUE,
+  device = "jpg",
+  width = 10,
+  height = 2,
+  units = "in"
 )
 }
 \arguments{
@@ -23,9 +26,20 @@ plot_densities(
 
 \item{alpha}{cut off value for posterior}
 
-\item{print}{boolean indicating if plots should be printed}
+\item{save}{boolean indicating if plots should be saved, if \code{FALSE}, the
+plots will be printed instead , default is \code{save = TRUE}}
 
-\item{save}{boolean indicating if plots should be saved}
+\item{title}{boolean indicating if plots should contain titles}
+
+\item{device}{character string with format used in \code{ggsave}}
+
+\item{width}{plot width in \code{units}, for grid plots adjusted for the
+number of plot columns \code{n_col}}
+
+\item{height}{plot height in \code{units}, for grid plots adjusted for the
+number of plot rows implied by \code{n_col}}
+
+\item{units}{units for plot size (\code{"in", "cm", "mm", or "px"})}
 }
 \value{
 nothing

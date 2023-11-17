@@ -10,6 +10,8 @@
 #' @param neg sectors to be substracted 
 #' 
 #' @return A time series list with weights.
+#' 
+#' @importFrom stats window<-
 compute_gr_weights <- function(tsl_r, tsl_n, idx, pos, neg) {
   
   # compute prices  

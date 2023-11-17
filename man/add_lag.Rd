@@ -7,6 +7,8 @@
 add_lag(sys, name, type, lags = NULL)
 }
 \arguments{
+\item{sys}{list with system matrices}
+
 \item{name}{name ob observation equation}
 
 \item{type}{type of trend, see details}

@@ -7,6 +7,8 @@
 add_cycle(sys, p, name, lags = NULL)
 }
 \arguments{
+\item{sys}{list with system matrices}
+
 \item{p}{integer with autoregressive order, \code{p <= 2}}
 
 \item{name}{name ob observation equation}

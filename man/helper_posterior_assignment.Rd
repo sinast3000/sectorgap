@@ -10,6 +10,8 @@ helper_posterior_assignment(model, df_set, endo)
 \item{model}{state space model object}
 
 \item{df_set}{data frame with model settings}
+
+\item{endo}{character vector of endogenous variable names}
 }
 \description{
 This function returns a list of items necessary to run each each step of the

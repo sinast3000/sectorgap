@@ -33,10 +33,10 @@ initialize_ss <- function(name, df_settings) {
 
 #' Add a trend to a state space model
 #'
+#' @param sys list with system matrices
 #' @param type type of trend, see details
 #' @param name name ob observation equation
 #' @param const logical indicating if there is a constant
-#' @inheritParams update_ssmodel
 #' 
 #' @details \code{type = 1} denotes a random walk, \code{type = 2} an integrated
 #'  random walk, \code{type = 3} and random walk with AR drift, and
@@ -136,7 +136,6 @@ add_trend <- function(sys, type, name, const = FALSE) {
 #' @param lags (optional) number of lags added to state equation, e.g. since 
 #'  other equations load on them
 #' @inheritParams add_trend
-#' @inheritParams update_ssmodel
 #' 
 #' @return The input list \code{sys} with updated matrices.
 #'
@@ -228,7 +227,7 @@ add_cycle <- function(sys, p, name, lags = NULL) {
 
 #' Add initialization matrices to state space model
 #'
-#' @inheritParams update_ssmodel
+#' @inheritParams add_trend
 #' 
 #' @return The input list \code{sys} with updated matrices.
 #'
@@ -276,7 +275,6 @@ add_init_mat <- function(sys) {
 #'
 #' @inheritParams add_trend
 #' @inheritParams add_cycle
-#' @inheritParams update_ssmodel
 #' 
 #' @return The input list \code{sys} with updated matrices.
 #'

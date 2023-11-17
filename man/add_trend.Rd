@@ -7,6 +7,8 @@
 add_trend(sys, type, name, const = FALSE)
 }
 \arguments{
+\item{sys}{list with system matrices}
+
 \item{type}{type of trend, see details}
 
 \item{name}{name ob observation equation}

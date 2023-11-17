@@ -6,6 +6,9 @@
 \usage{
 pct(x)
 }
+\arguments{
+\item{x}{(multiple) time series object}
+}
 \description{
 Computes the period on period percentage change
 }

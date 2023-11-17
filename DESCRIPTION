@@ -1,12 +1,12 @@
-Package: koftrends
+Package: sectorgap
 Type: Package
-Title: KOF Trends
+Title: A large Bayesian state space model to estimate consistent economic trends and cycles
 Version: 0.0.0
 Authors@R: 
     person("Sina", "Streicher", , "streicher@kof.ethz.ch", 
            role = c("aut", "cre"), comment = c(ORCID = "0000-0001-7848-1842"))
 Description: Estimates consistent trends and cycles of the aggregate economy 
-    and its production and expenditure subsectors.
+    and its economic subsectors.
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

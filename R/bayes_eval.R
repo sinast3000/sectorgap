@@ -11,17 +11,19 @@
 #'   \code{estimate_ssmodel} and this function).
 #' @param ... additional arguments (in case \code{fit} is supplied)
 #' @details If \code{fit} is supplied, the arguments 
-#'   \code{model, sys, settings, mcmc} will be taken from this object.
+#'   \code{model, settings, mcmc} will be taken from this object.
 #'
 estimation_results <- function(
   HPDIprob = 0.68, 
   model,
-  sys,
   settings, 
   mcmc,
   fit = NULL,
   ...
 ){
+  
+  # to avoid RMD check note
+  burnin <- R <- thin <- . <- prior <- NULL
   
   # unload object fit if supplied
   if (!is.null(fit))  list2env(x = fit, envir = environment())
@@ -183,7 +185,7 @@ HPDinterval <- function(x, prob = 0.95) {
 #'   \item{frac1}{The fraction of data contained in the first interval.}
 #'   \item{frac2}{The fraction of data contained in the second interval.}
 #' }
-#' @importFrom stats window start end spec.ar pnorm
+#' @importFrom stats window start end spec.ar pnorm var
 #' @keywords internal
 gewekeTest <- function(x, frac1 = 0.1, frac2 = 0.5, alpha = 0.05) {
   if (frac1 + frac2 > 1 | any(c(frac1, frac2) < 0) | any(c(frac1, frac2) > 1)) {
@@ -271,7 +273,7 @@ gewekeTest <- function(x, frac1 = 0.1, frac2 = 0.5, alpha = 0.05) {
 #'   \item{frac1}{The fraction of data contained in the first interval.}
 #'   \item{frac2}{The fraction of data contained in the second interval.}
 #' }
-#' @importFrom stats median spec.ar
+#' @importFrom stats median spec.ar var
 #' @keywords internal
 mcmcSummary <- function(x, HPDIprob, frac1 = 0.1, frac2 = 0.5) {
   

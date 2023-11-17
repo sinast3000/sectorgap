@@ -6,6 +6,9 @@
 \usage{
 add_init_mat(sys)
 }
+\arguments{
+\item{sys}{list with system matrices}
+}
 \value{
 The input list \code{sys} with updated matrices.
 }

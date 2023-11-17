@@ -39,6 +39,8 @@ get_recessions <- function(country) {
 
 #' Computes the period on period percentage change
 #'
+#' @param x (multiple) time series object
+#'
 pct <- function(x) {
   y <- 100 * (x / stats::lag(x, -1) - 1)
   colnames(y) <- colnames(x)
@@ -49,9 +51,17 @@ pct <- function(x) {
 
 #' Creates a constant time series with same dates and frequency as the one 
 #' given.
+#' 
+#' @param c constant scalar
+#' @param tsm (multiple) time series object
 #'
 ts_c <- function(c = 0, tsm) {
-  ts(c, start = start(tsm), end = end(tsm), frequency = frequency(tsm))
+  ts(
+    c, 
+    start = start(tsm), 
+    end = end(tsm), 
+    frequency = frequency(tsm)
+  )
 }
 
 # ---------------------------------------------------------------------------
@@ -65,7 +75,6 @@ ts_c <- function(c = 0, tsm) {
 #'
 #' @return A univariate time series object containing the trend of the original time series.
 #'
-#' @export
 #' @importFrom stats start end window ts lag frequency time
 hpfilter <- function(x, lambda) {
   n <- length(x[is.na(x) == FALSE])
@@ -86,6 +95,9 @@ hpfilter <- function(x, lambda) {
 # ---------------------------------------------------------------------------
 
 #' Extracts last letter in string
+#'
+#' @param x character string
+#' @param n number of letters to extract
 #'
 substr_r <- function(x, n){
   substr(x, nchar(x) - n + 1, nchar(x))

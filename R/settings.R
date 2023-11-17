@@ -65,7 +65,7 @@ initialize_settings <- function(
     transform = TRUE,
     name_agg = set$agg$variable,
     name_residual = NULL,
-    label = "Subgroup 1",
+    label = "Output",
     variable_label = c(
       "A: Goods-producing industries",
       "B: Service industries",
@@ -115,7 +115,7 @@ initialize_settings <- function(
     name_agg = set$agg$variable,
     name_residual = "resexp",
     transform = TRUE,
-    label = "Subgroup 2",
+    label = "Expenditure",
     variable_label = c(
       "i: Total consumption",
       "ii: Investment",
@@ -169,20 +169,22 @@ initialize_settings <- function(
   
 }
 
-
-
 # ------------------------------------------------------------------------------
 
 #' Create data frame with all model settings
 #' 
 #' @param x list with model setting (on trend, cycle, etc)
 #' 
-#' @importFrom dplyr mutate select group_by transmute ungroup summarize
+#' @importFrom dplyr mutate select group_by transmute ungroup summarize filter
 settings_to_df <- function(x) {
   
-  FUN <- function(x) 100 * log(x)
-  FUN_inv <- function(x) exp(x/100)
+  # to avoid RMD check note
+  type <- loads_on <- . <- variable <- variable_label <- group <- group_label <-
+    parameter_name <- lag_direct <- lag_indirect <- max_lag <- max_lag_extra <-
+    trend <- corr <- variable2 <- type2 <- cycle <- state <- state_lag <- 
+    max_lag_AR <- value <- NULL
   
+  # ----- observations
   count <- 0
   dfl <- list()
   for (jx in c("agg", "group1", "subgroup1", "group2", "agggroup")) {
@@ -199,18 +201,13 @@ settings_to_df <- function(x) {
         trend = lx$trend,
         cycle = lx$cycle,
         corr = ifelse(is.null(lx$corr), NA, lx$corr),
-        # fun_transform = ifelse(lx$transform, FUN, identity),
-        # fun_transform_inv = ifelse(lx$transform, FUN_inv, identity),
         constr_drift = ifelse(is.null(lx$constr_drift), NA, lx$constr_drift),
         constr_cycle = ifelse(is.null(lx$constr_cycle), NA, lx$constr_cycle),
-        # loading_lag = ifelse(is.null(lx$agg_load), NA, paste(lx$agg_load, sep = ",")),
-        # loading_variable = x$agg$variable
         group = jx,
         group_label = lx$label,
         transform = ifelse(length(lx$transform)==1, lx$transform, lx$transform[count_ix])
       )
     }
-    
   }
   for (jx in c("misc")) {
     lx <- x[[jx]]
@@ -224,35 +221,32 @@ settings_to_df <- function(x) {
         trend = lx[[ix]]$trend,
         cycle = lx[[ix]]$cycle,
         corr = NA,
-        # fun_transform = ifelse(lx$transform, FUN, identity),
-        # fun_transform_inv = ifelse(lx$transform, FUN_inv, identity),
         constr_drift = NA,
         constr_cycle = NA,
-        # loading_lag = ifelse(is.null(lx$agg_load), NA, paste(lx$agg_load, sep = ",")),
-        # loading_variable = x$agg$variable
         group = jx,
         group_label = lx$label,
         transform = lx[[ix]]$transform
       )
     }
   }  
+  df_obs <- do.call(rbind, dfl)
   
-  
-  # loadings
+  #  ------ loadings
   dfl_loadings <- list()
   for (lx in x[c("group1", "group2", "agggroup")]) {
     for (ix in lx$variable)  {
       for (jx in lx$agg_load) {
         count <- count + 1
-        dfl_loadings[[count]] <- within(data.frame(
+        dfl_loadings[[count]] <- data.frame(
           variable = ix,
           loads_on = x$agg$variable,
           lag = jx,
-          type = "cycle"), {
-            parameter_name = paste0(type, "_load_", ix, "_", loads_on, "_L", lag)
+          type = "cycle"
+        ) %>%
+          mutate(
+            parameter_name = paste0(type, "_load_", ix, "_", loads_on, "_L", lag),
             loading_state = gsub("_L0", "", paste0(type, "_", loads_on, "_L", lag))
-          }
-        )
+          )
       }
     }
   }
@@ -260,19 +254,20 @@ settings_to_df <- function(x) {
     for (ix in lx$variable)  {
       for (jx in lx$agg_load) {
         count <- count + 1
-        dfl_loadings[[count]] <- within(data.frame(
+        dfl_loadings[[count]] <- data.frame(
           variable = ix,
-          loads_on = set$group1$variable[
+          loads_on = x$group1$variable[
             grep(
               gsub(lx$prefix, "", ix), 
               gsub(x$group1$prefix, "", x$group1$variable))
           ],
           lag = jx,
-          type = "cycle"), {
-            parameter_name = paste0(type, "_load_", ix, "_", loads_on, "_L", lag)
+          type = "cycle"
+        ) %>%
+          mutate(
+            parameter_name = paste0(type, "_load_", ix, "_", loads_on, "_L", lag),
             loading_state = gsub("_L0", "", paste0(type, "_", loads_on, "_L", lag))
-          }
-        )
+          )
       }
     }
   }
@@ -281,27 +276,27 @@ settings_to_df <- function(x) {
       for (jx in lx[[ix]]$loadings) {
         for (lag in jx$lag) {
           count <- count + 1
-          dfl_loadings[[count]] <- within(data.frame(
+          dfl_loadings[[count]] <- data.frame(
             variable = ix,
             loads_on = jx$variable,
             lag = lag,
-            type = jx$type), {
-              parameter_name = paste0(type, "_load_", ix, "_", loads_on, "_L", lag)
+            type = jx$type
+          ) %>%
+            mutate(
+              parameter_name = paste0(type, "_load_", ix, "_", loads_on, "_L", lag),
               loading_state = gsub("_L0", "", paste0(type, "_", loads_on, "_L", lag))
-            }
-          )
+            )
         }
       }
     }
   }
-  
-  df_obs <- do.call(rbind, dfl)
-  df_loadings <- do.call(rbind, dfl_loadings)
+  df_loadings <- do.call(rbind, dfl_loadings) %>%
+    left_join(., df_obs %>% select(variable, variable_label, group, group_label), by = "variable")
   df_lags <- df_loadings %>% 
     group_by(variable = loads_on, type) %>%
     dplyr::summarize(max_lag = max(lag)) 
   
-  
+  # ----- indirect loadings
   df_tmp1 <- df_loadings %>%
     filter(type == "cycle") %>%
     filter(loads_on %in% variable) 
@@ -328,10 +323,12 @@ settings_to_df <- function(x) {
         )
       
     }
-    df_loadings_extra <- do.call(rbind, dfl_loadings_extra)
+    df_loadings_extra <- do.call(rbind, dfl_loadings_extra) %>% 
+      select(-group) %>%
+      left_join(., df_obs %>% select(variable, variable_label, group, group_label), by = "variable")
     df_lags_extra <- df_loadings_extra %>% 
       group_by(variable = loads_on, type) %>%
-      dplyr::summarize(max_lag_extra = max(lag))
+      dplyr::summarize(max_lag_extra = max(lag)) 
     
     df_lags <- df_lags %>%
       full_join(.,df_lags_extra, by = c("variable", "type")) %>%
@@ -340,37 +337,38 @@ settings_to_df <- function(x) {
       select(-max_lag_extra)
   }
   
-  
-  ############## variance
-  
+  # ------ variance
   dfl_variance <- list()
   dfl_variance[[1]] <- df_obs %>% 
     filter(trend == 4 | trend == 3 | trend == 1) %>% 
     transmute(
+      variable = variable,
       parameter_name = paste0("var_trend_", variable), 
-      variable = paste0("trend_", variable),
+      state = paste0("trend_", variable),
       type = "trend",
       corr = ifelse(!is.na(corr), corr, 0)
     ) 
   dfl_variance[[2]] <- df_obs %>% 
     filter(trend >= 2) %>% 
     transmute(
+      variable = variable,
       parameter_name = paste0("var_drift_", variable), 
-      variable = paste0("drift_", variable),
+      state = paste0("drift_", variable),
       type = "drift",
       corr = ifelse(!is.na(corr), corr, 0)
     )
   dfl_variance[[3]] <- df_obs %>% 
     transmute(
+      variable = variable,
       parameter_name = paste0("var_cycle_", variable), 
-      variable = paste0("cycle_", variable),
+      state = paste0("cycle_", variable),
       type = "cycle",
       corr = NA
     ) 
-  df_variance <- do.call(rbind, dfl_variance)
+  df_variance <- do.call(rbind, dfl_variance) %>%
+    left_join(., df_obs %>% select(variable, variable_label, group, group_label), by = "variable")
   
-  
-  ############## covariance
+  # ----- covariance
   idx <- df_variance$type != "cycle" & !is.na(df_variance$corr) & df_variance$corr != 0
   if (sum(idx)>0) {
     df_variance_idx <- df_variance[idx, ]
@@ -394,64 +392,67 @@ settings_to_df <- function(x) {
     df_covariance <- data.frame()
   }
   
-  
-  ############## AR
-  
+  # ----- AR
   dfl_AR <- list()
   dfl_AR[[1]] <- df_obs %>% 
     filter(cycle >= 1) %>% 
     transmute(
+      variable = variable,
       parameter_name = paste0("cycle_", variable, "_AR"), 
-      variable = paste0("cycle_", variable),
-      variable_lag = variable,
+      state = paste0("cycle_", variable),
+      state_lag = state,
+      lag = 1,
       type = "cycle"
     ) 
   dfl_AR[[2]] <- df_obs %>% 
     filter(cycle == 2) %>% 
     transmute(
+      variable = variable,
       parameter_name = paste0("cycle_", variable, "_AR_L1"), 
-      variable = paste0("cycle_", variable),
-      variable_lag = paste0(variable, "_L1"),
+      state = paste0("cycle_", variable),
+      state_lag = paste0(state, "_L1"),
+      lag = 2,
       type = "cycle"
     ) 
   dfl_AR[[3]] <- df_obs %>% 
     filter(trend == 3) %>% 
     transmute(
+      variable = variable,
       parameter_name = paste0("drift_", variable, "_AR"), 
-      variable = paste0("drift_", variable),
-      variable_lag = variable,
+      state = paste0("drift_", variable),
+      state_lag = state,
+      lag = 1,
       type = "drift"
     ) 
-  df_AR <- do.call(rbind, dfl_AR)
+  df_AR <- do.call(rbind, dfl_AR) %>%
+    left_join(., df_obs %>% select(variable, variable_label, group, group_label), by = "variable")
   
-  ############## const
-  
+  # ----- const
   dfl_const <- list()
   dfl_const[[1]] <- df_obs %>% 
     filter(trend == 3) %>% 
     transmute(
+      variable = variable,
       parameter_name = paste0("const_drift_", variable), 
-      variable = paste0("drift_", variable),
-      variable_lag = "const"
+      state = paste0("drift_", variable),
+      state_lag = "const"
     ) 
   df_const <- do.call(rbind, dfl_const)
   
   
-  ############## AR drift
-  
+  # ------ AR drift
   df_AR_drift <- left_join(
     df_AR %>% 
       filter(type == "drift") %>% 
       rename(phi=parameter_name) %>% 
-      mutate(var_cycle = paste0("var_", variable)) %>% 
-      select(-variable_lag), 
+      mutate(var_cycle = paste0("var_", state)) %>% 
+      select(-state_lag, -variable), 
     df_const %>% 
       rename(const = parameter_name) %>% 
-      select(-variable_lag), 
-    by = "variable")
+      select(-state_lag), 
+    by = "state")
   
-  ##############
-  
+  # ------ lags
   df_lags <- full_join(
     df_lags, 
     df_obs %>% 
@@ -461,7 +462,7 @@ settings_to_df <- function(x) {
     dplyr::select(!max_lag_AR) %>%
     ungroup
   
-  # constraints
+  # ------ constraints
   dfl_constr <- list()
   count <- 0
   for (gx in c("group1", "group2", "subgroup1")) {
@@ -489,7 +490,7 @@ settings_to_df <- function(x) {
       as.data.frame()
   }
   
-  
+  # consolidate and return
   return(
     list(
       obs = df_obs, 
@@ -506,5 +507,3 @@ settings_to_df <- function(x) {
   )
   
 }
-
-

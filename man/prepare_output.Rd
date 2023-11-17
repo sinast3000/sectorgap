@@ -10,7 +10,7 @@ prepare_output(
   tsm_p,
   settings,
   estimate = "median",
-  HPDI = 68,
+  HPDIprob = 0.68,
   transformed = TRUE
 )
 }
@@ -28,6 +28,9 @@ series}
 \item{estimate}{character specifying the posterior estimate. Valid options
 are \code{"mean"} and \code{"median"}, the default is
 \code{estimate = "median"}.}
+
+\item{HPDIprob}{probability of highest posterior density interval, the
+default is \code{HPDIprob = 0.68}}
 
 \item{transformed}{boolean indicating if the transformed series should be
 used.}
