@@ -1,0 +1,18 @@
+bibentry(
+  bibtype = "Article",
+  title = "Improving output gap estimation--a bottom-up approach",
+  author = c(person(given = "Sina", 
+             family = "Streicher", 
+             email = "streicher@kof.ethz.ch"),
+             person(given = "Alexander", 
+             family = "Rathke", 
+             email = "rathke@kof.ethz.ch"))
+  journal = "{KOF} Working Papers",
+  number  = "513",
+  year = "2023",
+  textVersion =   paste("Rathke A. and S. Streicher (2023).",
+        "Improving output gap estimation--a bottom-up approach",
+        "KOF Working Paper 513."),
+  
+  header = "To cite sectorgap in publications use:"
+)
