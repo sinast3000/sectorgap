@@ -1,11 +1,19 @@
 
 # ------------------------------------------------------------------------------
 
-#' Creates the system matrices for a state space model
+#' State space model
+#' 
+#' @description Defines a state space model for the provided settings and data.
 #'
-#' @param settings list with model setting (on trend, cycle, etc)
-#' @param tsm time series with all observation series (as matrix)
-#' @param weightl named list of time series with weights
+#' @param settings list with model setting, in the format returned by the 
+#'   function \code{initialize_settings}
+#' @param data list with at least two named components: \code{tsm} is a multiple 
+#'   time series object that contains all observation series, \code{weights} 
+#'   is a named list of time series with (nominal) weights, the list names 
+#'   correspond to the different groups, i.e., \code{group1, group2, subgroup1}, 
+#'   if present in the model
+#' 
+#' @details \code{data} is preferably the output of funtion \code{prepare_data}.
 #' 
 #' @return A state space model object returned by the function \code{SSModel} of 
 #'   the package \code{KFAS} and in addition a list item called \code{names} 
@@ -13,16 +21,34 @@
 #'
 #' @importFrom stats window start end
 #' @importFrom KFAS SSModel SSMcustom
+#' 
+#' @export
+#' @examples
+#' data("data_ch")
+#' settings <- initialize_settings()
+#' data <- prepate_data(
+#'   settings = settings,
+#'   tsl = data_ch$tsl,
+#'   tsl_n = data_ch$tsl_n
+#' )
+#' model <- define_ssmodel(
+#'   settings = settings, 
+#'   data = data
+#' )
 define_ssmodel <- function(
   settings, 
-  tsm, 
-  weightl = NULL
+  data
 ){
-
+  
+  # save call
+  mc <- match.call(expand.dots = FALSE)
+  
   # to avoid RMD check note
   variable <- type <- max_lag <- loading_state <- parameter_name <- NULL
   
   # convert to time series list
+  tsm <- data$tsm
+  weightl <- data$weights
   tsl <- as.list(tsm)
   
   # settings to data frames
@@ -94,7 +120,7 @@ define_ssmodel <- function(
       df <- df_set$constr[ix, , drop = FALSE]
       
       if (df$type == "trend") {
-        names_expand <- c(names_expand, df$name_agg, settings[[df$group]]$variable)
+        names_expand <- c(names_expand, df$load_name, settings[[df$group]]$variable)
       }
     }
     
@@ -119,17 +145,17 @@ define_ssmodel <- function(
       idx_residual <- colnames(weightl[[df$group]]) == settings[[df$group]]$name_residual
     }
     
-    sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", df$name_agg), ] <- -1
+    sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", df$load_name), ] <- -1
     sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", settings[[df$group]]$variable), ] <- t(weightl[[df$group]][, !idx_residual])
 
     if (df$type == "trend") {
-      sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", df$name_agg, "_L1"), ] <- 1
+      sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", df$load_name, "_L1"), ] <- 1
       sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", settings[[df$group]]$variable, "_L1"), ] <- -t(weightl[[df$group]][, !idx_residual])
       
     }
         
     if (df$residual) {
-      ts_residual <- diff(tsl[[df$name_agg]]) - Reduce("+", as.list(diff(tsm[, settings[[df$group]]$variable]) * weightl[[df$group]][, !idx_residual]))
+      ts_residual <- diff(tsl[[df$load_name]]) - Reduce("+", as.list(diff(tsm[, settings[[df$group]]$variable]) * weightl[[df$group]][, !idx_residual]))
       ts_residual <- hpfilter(ts_residual, lambda = 1600)
       # TODO: consider transformation functions
       sys$Zt[paste0("constr_", df$type, "_", df$group), "const", ] <- c(NA, ts_residual)
@@ -171,16 +197,20 @@ define_ssmodel <- function(
     H = sys$Ht,
     data = tsm
   )
-  
   model$names <- sys$names
-  # return(list(sys = sys, tsm = tsm, model = model))
+  class(model) <- c("ss_model", class(model))
+  attr(model, "call") <- mc
+  
+
   return(model)
   
 }
 
 # ------------------------------------------------------------------------------
 
-#' Updates the system matrices for a state space model
+#' State space model update
+#'
+#' @description Updates the system matrices of a state space model.
 #'
 #' @param pars named vector with all parameters
 #' @param model state space model object
@@ -188,7 +218,7 @@ define_ssmodel <- function(
 #' @inherit define_ssmodel
 #' 
 #' @return The state space model object \code{model} with updates matrices.
-#'
+#' @keywords internal
 update_ssmodel <- function(
   pars, 
   model, 

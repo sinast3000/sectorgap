@@ -23,3 +23,4 @@ A time series list with weights.
 \description{
 Computes nominal weights from sub sector data
 }
+\keyword{internal}

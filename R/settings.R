@@ -1,50 +1,81 @@
 
-
-# corr = 1: trends ( only if trend exists (if trend!=2))
-# corr = 2: drifts
-# corr = 4: trends and drifts
-# corr = NA or corr = 0: no correlation
-
 # ------------------------------------------------------------------------------
 
-#' Settings
+#' Model settings
 #' 
-#' This function initializes settings with a basic example.
+#' @description Initializes settings with a basic example.
 #'
-#' @param FUN_transform transformation function
-#' @param FUN_transform_inv inverse transformation function
+#' @param FUN_transform transformation function, the default is 
+#' \code{function(x) 100 * log(x)}
+#' @param FUN_transform_inv inverse transformation function, the default is 
+#' \code{function(x) exp(x / 100)}
 #' 
-#' @return A nested list with settings for different groups, namely
-#'   \item{agg}{List with settings for the aggregate variable.}
-#'   \item{group1}{List with settings for the first subgroup, all variables 
-#'         in this group load on the aggregate variable.}
-#'   \item{group2}{List with settings for the second subgroup, all variables 
-#'         this group load on the aggregate variable.}
-#'   \item{subgroup1}{List with settings for the corresponding group to 
-#'         \code{group1}, all variables in this group load on the respective 
-#'         counterpart in \code{group1}.}
-#'   \item{agggroup}{List with settings for a group of aggregate variables, all 
-#'         variables in this group load on the aggregate variable.}
-#'   \item{misc}{Nested list with settings for miscellaneous variables that do 
-#'         not fit into any other list, settings for these variables are set 
-#'         individually and are more flexible.}
+#'   
+#' @return A nested list with settings for the following groups:
+#'   \item{agg}{settings for the aggregate variable}
+#'   \item{group1}{settings for \code{group1}, all variables in this group load 
+#'   on the aggregate variable, unless otherwise specified}
+#'   \item{group2}{settings for \code{group2}, all variables in this group load 
+#'   on the aggregate variable, unless otherwise specified}
+#'   \item{subgroup1}{settings for \code{subgroup1}, each variable in this group 
+#'   loads on the respective variable in \code{group1}}
+#'   \item{agggroup}{settings for a group of variables that all load on the same
+#'    variable}
+#'   \item{misc}{settings for variables that require individual settings}
+#' Each group contains at least the following list items:
+#'   \item{trend}{\code{4} is a local linear trend, \code{3} a local linear 
+#'   trend with AR(1) drift, \code{2} a local linear drift without shocks to 
+#'   trend growth, \code{0} implies no trend (e.g. if a variable shares a trend 
+#'   with another one)}
+#'   \item{cycle}{\code{2} is an AR(2) cycle, \code{1} an AR(1) cycle, and 
+#'   \code{0} a white noise cycle, each with normal innovations}
+#'   \item{transform}{logical indicating if the transformation function should 
+#'   be applied to the variable or group of variables}
+#'   \item{variable}{variable name(s)}
+#'   \item{variable_label}{variable label(s)}
+#'   \item{label}{label of group}
+#' The blocks \code{group1, group2, subgroup1} additionally contain the 
+#' following list items:
+#'   \item{corr}{\code{4} implies that trends and drifts are correlated, 
+#'   \code{2} that only dirfts are correlated, \code{1} that only trends are 
+#'   correlated, and \code{0} or \code{NA} implies no correlation. Only 
+#'   applicable for \code{group1, group2, subgroup1}}
+#'   \item{load_name}{name of the variable that all variables in the group load 
+#'   (for \code{group1, group2}) and which is used for the aggregation}
+#'   \item{load_lag}{lags of the of the variable that all variables in the group 
+#'   load (for \code{group1, group2})}
+#'   \item{name_residual}{name of the residual in case variables do not add up, 
+#'   and if aggregation constraints are present (for 
+#'   \code{group1, group2, subgroup1})}
+#'   \item{constr_drift}{logical indicating if constraints for the drifts should 
+#'   be enforced}
+#'   \item{constr_trends}{logical indicating if constraints for the trends 
+#'   should be enforced}   
+#'   \item{prefix}{a character string by which the variables in \code{group1} 
+#'   and \code{subgroup1} should be matched}
+#'   \item{variable_neg}{variable names that are negative and thus need to be 
+#'   subtracted when constructing weights}
+#'         
+#' @export
 #'         
 initialize_settings <- function(
   FUN_transform = function(x) 100 * log(x),
   FUN_transform_inv = function(x) exp(x / 100)
 ) {
   
+  # save call
+  mc <- match.call(expand.dots = FALSE)
+  
   set <- list()
   
   # aggregate variable
   set$agg <- list(
     cycle = 2, 
-    trend = 3,
+    trend = 4,
     variable = "output",
     transform = TRUE,
     label = "Aggregate output",
     variable_label = "GDP"
-    
   )
   
   # group1
@@ -52,7 +83,7 @@ initialize_settings <- function(
     trend = 4,
     cycle = 2,
     corr = 0,
-    agg_load = 0,
+    load_lag = 0,
     constr_drift = TRUE,
     constr_trend = TRUE,
     variable = c(
@@ -63,7 +94,7 @@ initialize_settings <- function(
     prefix = "va",
     variable_neg = NULL,
     transform = TRUE,
-    name_agg = set$agg$variable,
+    load_name = set$agg$variable,
     name_residual = NULL,
     label = "Output",
     variable_label = c(
@@ -78,7 +109,7 @@ initialize_settings <- function(
     trend = 4,
     cycle = 2,
     corr = 0,
-    agg_load = 0:2,
+    load_lag = 0:2,
     constr_trend = TRUE,
     constr_drift = TRUE,
     variable = c(
@@ -87,7 +118,7 @@ initialize_settings <- function(
     ),    
     prefix = "fte",
     transform = TRUE,
-    name_agg = "employment",
+    load_name = "employment",
     name_residual = "resempl",
     label = "Employment",
     variable_label = c(
@@ -102,7 +133,7 @@ initialize_settings <- function(
     trend = 4,
     cycle = 2,
     corr = 0,
-    agg_load = 0,
+    load_lag = 0,
     constr_trend = TRUE,
     constr_drift = TRUE,
     variable = c(
@@ -112,7 +143,7 @@ initialize_settings <- function(
       "exp4"
     ), 
     variable_neg = "exp4",
-    name_agg = set$agg$variable,
+    load_name = set$agg$variable,
     name_residual = "resexp",
     transform = TRUE,
     label = "Expenditure",
@@ -130,12 +161,16 @@ initialize_settings <- function(
     trend = 4,
     cycle = 2,
     corr = 0,
-    agg_load = 0:2,
+    load_lag = 0:2,
+    load_name = set$agg$variable,
     variable = c(
       "employment",
       "urate"
     ),
-    transform = c(TRUE, FALSE),
+    transform = c(
+      TRUE, 
+      FALSE
+    ),
     label = "Aggregates",
     variable_label = c(
       "FTE employment",
@@ -165,17 +200,26 @@ initialize_settings <- function(
   set$fun_transform <- FUN_transform
   set$fun_transform_inv <- FUN_transform_inv
   
+  class(set) <- "settings"
+  attr(set, "call") <- mc
   return(set)
   
 }
 
 # ------------------------------------------------------------------------------
 
-#' Create data frame with all model settings
+#' Data frames with model settings
 #' 
-#' @param x list with model setting (on trend, cycle, etc)
+#' @description Creates a list of data frames with model settings regarding the 
+#' state space model.
+#' 
+#' @param x list with model setting 
 #' 
 #' @importFrom dplyr mutate select group_by transmute ungroup summarize filter
+#' 
+#' @return A list with data frames containing model settings.
+#' 
+#' @keywords internal
 settings_to_df <- function(x) {
   
   # to avoid RMD check note
@@ -183,6 +227,21 @@ settings_to_df <- function(x) {
     parameter_name <- lag_direct <- lag_indirect <- max_lag <- max_lag_extra <-
     trend <- corr <- variable2 <- type2 <- cycle <- state <- state_lag <- 
     max_lag_AR <- value <- NULL
+  
+  # check if labels are present, if not, use variable/group names
+  groups <- c("agg", "group1", "subgroup1", "group2", "agggroup")
+  group_names <- c("Aggregate", "Group 1", "Subgroup 1", "Group2", "Aggregate group")
+  names(group_names) <- groups
+  for (ig in groups) {
+    if (is.null(x[[ig]]$label)) x[[ig]]$label <- group_names[ig]
+    if (is.null(x[[ig]]$variable_label)) x[[ig]]$variable_label <- x[[ig]]$variable
+  }
+  ig <- "misc"
+  if (is.null(x[[ig]]$label)) x[[ig]]$label <- "Miscellaneous"
+  for (iv in names(x[[ig]])[names(x[[ig]]) != "label"]) {
+    if (is.null(x[[ig]][[iv]]$variable_label)) x[[ig]][[iv]]$variable_label <- iv
+  }
+  
   
   # ----- observations
   count <- 0
@@ -202,6 +261,7 @@ settings_to_df <- function(x) {
         cycle = lx$cycle,
         corr = ifelse(is.null(lx$corr), NA, lx$corr),
         constr_drift = ifelse(is.null(lx$constr_drift), NA, lx$constr_drift),
+        constr_trend = ifelse(is.null(lx$constr_trend), NA, lx$constr_trend),
         constr_cycle = ifelse(is.null(lx$constr_cycle), NA, lx$constr_cycle),
         group = jx,
         group_label = lx$label,
@@ -222,6 +282,7 @@ settings_to_df <- function(x) {
         cycle = lx[[ix]]$cycle,
         corr = NA,
         constr_drift = NA,
+        constr_trend = NA,
         constr_cycle = NA,
         group = jx,
         group_label = lx$label,
@@ -235,11 +296,12 @@ settings_to_df <- function(x) {
   dfl_loadings <- list()
   for (lx in x[c("group1", "group2", "agggroup")]) {
     for (ix in lx$variable)  {
-      for (jx in lx$agg_load) {
+      for (jx in lx$load_lag) {
         count <- count + 1
         dfl_loadings[[count]] <- data.frame(
           variable = ix,
-          loads_on = x$agg$variable,
+          # loads_on = x$agg$variable,
+          loads_on = lx$load_name,
           lag = jx,
           type = "cycle"
         ) %>%
@@ -252,7 +314,7 @@ settings_to_df <- function(x) {
   }
   for (lx in x[c("subgroup1")]) {
     for (ix in lx$variable)  {
-      for (jx in lx$agg_load) {
+      for (jx in lx$load_lag) {
         count <- count + 1
         dfl_loadings[[count]] <- data.frame(
           variable = ix,
@@ -475,7 +537,7 @@ settings_to_df <- function(x) {
         drift = ifelse(is.null(lx$constr_drift), NA, lx$constr_drift),
         trend = ifelse(is.null(lx$constr_trend), NA, lx$constr_trend),
         cycle = ifelse(is.null(lx$constr_cycle), NA, lx$constr_cycle),
-        name_agg = lx$name_agg,
+        load_name = lx$load_name,
         name_residual = ifelse(is.null(lx$name_residual), NA, lx$name_residual),
         residual = ifelse(is.null(lx$name_residual), FALSE, TRUE)
       )

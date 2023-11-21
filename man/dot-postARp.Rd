@@ -34,3 +34,4 @@ See "Chib, Siddhartha. "Bayes regression with autoregressive
 errors: A Gibbs sampling approach." Journal of econometrics 58.3 (1993):
 275-294."
 }
+\keyword{internal}

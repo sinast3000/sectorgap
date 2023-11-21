@@ -2,9 +2,9 @@
 % Please edit documentation in R/bayes_estimation.R
 \name{helper_posterior_assignment}
 \alias{helper_posterior_assignment}
-\title{List of model setting necessary to draw from posterior}
+\title{Settings for draws from posterior}
 \usage{
-helper_posterior_assignment(model, df_set, endo)
+helper_posterior_assignment(model, df_set, prior, endo)
 }
 \arguments{
 \item{model}{state space model object}
@@ -13,7 +13,12 @@ helper_posterior_assignment(model, df_set, endo)
 
 \item{endo}{character vector of endogenous variable names}
 }
-\description{
-This function returns a list of items necessary to run each each step of the
+\value{
+A list of items necessary to run each each step of the
 Gibbs sampler.
 }
+\description{
+Creates a list of settings used during the Gibbs sampling
+algorithm.
+}
+\keyword{internal}

@@ -12,3 +12,4 @@ pct(x)
 \description{
 Computes the period on period percentage change
 }
+\keyword{internal}

@@ -24,3 +24,4 @@ A named vector of drawn parameters.
 This is a wrapper function that draws the parameters of the output gap for
 different cycle specifications
 }
+\keyword{internal}

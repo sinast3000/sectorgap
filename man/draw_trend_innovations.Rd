@@ -4,7 +4,7 @@
 \alias{draw_trend_innovations}
 \title{Draws (correlated) trend variances.}
 \usage{
-draw_trend_innovations(model, state, df_var, df_cov, distrPar)
+draw_trend_innovations(model, state, df_var, df_cov, df_prior)
 }
 \arguments{
 \item{model}{state space model object}
@@ -15,7 +15,7 @@ draw_trend_innovations(model, state, df_var, df_cov, distrPar)
 
 \item{df_cov}{data frame with trend and drift covariance settings}
 
-\item{distrPar}{prior distribution matrix}
+\item{df_prior}{prior distribution matrix}
 }
 \value{
 A named vector of drawn parameters.

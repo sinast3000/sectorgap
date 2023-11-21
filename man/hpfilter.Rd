@@ -17,3 +17,4 @@ A univariate time series object containing the trend of the original time series
 \description{
 Applies the Hodrick Prescott Filter.
 }
+\keyword{internal}

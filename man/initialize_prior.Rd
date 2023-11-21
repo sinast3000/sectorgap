@@ -2,7 +2,7 @@
 % Please edit documentation in R/prior.R
 \name{initialize_prior}
 \alias{initialize_prior}
-\title{Initializes the prior distributions}
+\title{Prior distribution}
 \usage{
 initialize_prior(model, settings, lambda_d = 100, lambda_t = 100, df = 6)
 }
@@ -10,7 +10,8 @@ initialize_prior(model, settings, lambda_d = 100, lambda_t = 100, df = 6)
 \item{model}{state space model object, returned by the function
 \code{define_ssmodel}}
 
-\item{settings}{list with model setting (on trend, cycle, etc)}
+\item{settings}{list with model setting, in the format returned by the
+function \code{initialize_settings}}
 
 \item{lambda_d}{drift smoothing constant (default: 100)}
 
@@ -19,14 +20,19 @@ initialize_prior(model, settings, lambda_d = 100, lambda_t = 100, df = 6)
 \item{df}{degrees of freedom for inverse gamma distributions}
 }
 \value{
-A list of matrices, each list item corresponds to one endogenous
-variable. The matrix columns correspond to each parameter in the respective
-equation. The first two rows in each matrix define the distribution, the
-third and fourth parameter restrictions (not used), and the fifth row
-contains the mean which can e.g. be used for initialization.
+A data frame with one row per parameter and the following columns:
+\item{variable}{name of endogneous variable of equation}
+\item{parameter_name}{name of parameter}
+\item{par1}{first parameter of specified distribution, mean for normal
+parameters and scale for inverse gamma parameters}
+\item{par2}{second parameter of specified distribution, variance for normal
+parameters and degrees of freedom for inverse gamma parameters}
+\item{ini}{initial value for Gibbs sampler, i.e. mean of distribution given
+\code{par1} and \code{par2}}
+\item{distribution}{name of prior distribution}
 }
 \description{
-Initializes the prior distributions
+Initializes the prior distributions.
 }
 \details{
 All loadings and autoregressive parameters are assumed to be normal
@@ -36,7 +42,29 @@ All variance parameters are assumed to be inverse gamma distributed.
 The cycle variance has prior mean 1, and the trend variances have prior mean
 1/100.
 
+The normal distribution is parametrized via mean and variance.
+
+the inverse gamma distribution is parametrized degrees of freedom
+\code{nu} and scale \code{s}.
+
 The mean of the inverse gamma distribution is given by
 \code{beta / (alpha - 1) = beta / 2 = s}, where
-\code{s = 2 beta, nu = 2 alpha}
+\code{s = 2 beta, nu = 2 alpha}.
+}
+\examples{
+data("data_ch")
+settings <- initialize_settings()
+data <- prepate_data(
+  settings = settings,
+  tsl = data_ch$tsl,
+  tsl_n = data_ch$tsl_n
+)
+model <- define_ssmodel(
+  settings = settings, 
+  data = data
+)
+prior <- initialize_prior(
+  model = model, 
+  settings = settings
+) 
 }

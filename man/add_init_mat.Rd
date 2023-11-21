@@ -15,3 +15,4 @@ The input list \code{sys} with updated matrices.
 \description{
 Add initialization matrices to state space model
 }
+\keyword{internal}

@@ -1,8 +1,8 @@
 
-#' Statistics for sampled parameters and states.
+#' Results for sampled parameters and states
 #' 
-#' This function computes estimation results for the MCMC sampling output for a
-#' specific HPDI and function (e.g. mean or median).
+#' @description Computes estimation results for the MCMC sampling output for a
+#' specific HPDI and evaluation function (e.g. mean or median).
 #'
 #' @inheritParams estimate_ssmodel
 #' @inheritParams define_ssmodel
@@ -10,10 +10,15 @@
 #' @param fit An object of class \code{fit} (returned by the function 
 #'   \code{estimate_ssmodel} and this function).
 #' @param ... additional arguments (in case \code{fit} is supplied)
+#' 
 #' @details If \code{fit} is supplied, the arguments 
 #'   \code{model, settings, mcmc} will be taken from this object.
+#'  
+#' @return An object of class \code{fit}.  
+#'  
+#' @export
 #'
-estimation_results <- function(
+compute_mcmc_results <- function(
   HPDIprob = 0.68, 
   model,
   settings, 
@@ -45,7 +50,7 @@ estimation_results <- function(
   # ----- parameters
   
   # parameters estimates
-  df_param <- mcmcSummary(x = parameters, HPDIprob = HPDIprob)
+  df_param <- mcmc_summary(x = parameters, HPDIprob = HPDIprob)
   df_param <- df_param[order(rownames(df_param)), ]
   
   # update final model
@@ -75,7 +80,7 @@ estimation_results <- function(
           dimnames = list(NULL, c(colnames(state), colnames(state_gap)), NULL))
   
   # sample statistics for  model series
-  tsl <- .SSresultsBayesian(
+  tsl <- results_state(
     model = model, 
     HPDIprob = HPDIprob, 
     state = state
@@ -96,7 +101,7 @@ estimation_results <- function(
 
   # sample statistics for transformed trends
   idx_trend <- colnames(state_trans)[colnames(state_trans) %in% idx_trend_trans]
-  tsl_trans <- .SSresultsBayesian(
+  tsl_trans <- results_state(
     model = model, 
     HPDIprob = HPDIprob, 
     state = state_trans[, idx_trend, ]
@@ -117,8 +122,7 @@ estimation_results <- function(
     mcmc = mcmc,
     prior = prior
   )
-  class(fit) <- c("fit")
-  attr(fit, "method") <- "bayesian"
+  class(fit) <- c("ss_fit")
   attr(fit, "R") <- R
   attr(fit, "burnin") <- burnin
   attr(fit, "thin") <- thin
@@ -128,14 +132,20 @@ estimation_results <- function(
 }
 
 
-# -------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-#' Computes the approximate highest posterior density interval (HPDI).
+#' Highest posterior density interval (HPDI)
+#' 
+#' @description Computes the approximate highest posterior density interval 
+#' (HPDI).
 #'
-#' @param x A \code{R x n} matrix with \code{R} draws of \code{n} variables.
-#' @param prob The probability mass of the interval, a scalar between zero and one.
+#' @param x A \code{R x n} matrix with \code{R} draws of \code{n} variables
+#' @param prob The probability mass of the interval, a scalar between zero and one
+#' 
+#' @return \code{n x 2} matrix with lower and upper boundary of the HPDI.
+#' 
 #' @keywords internal
-HPDinterval <- function(x, prob = 0.95) {
+hpd_interval <- function(x, prob = 0.95) {
   x <- as.matrix(x)
   # order values
   xOrder <- apply(x, 2, sort)
@@ -163,15 +173,17 @@ HPDinterval <- function(x, prob = 0.95) {
 }
 
 
-# -------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-#' Conducts a Geweke test for convergence of the draws.
+#' Geweke test for convergence
+#' 
+#' @description Conducts a Geweke test for convergence of the draws.
 #'
-#' @param x A \code{R x n} matrix with \code{R} draws of \code{n} variables.
-#' @param frac1 The probability mass of the first interval, a scalar between zero and one.
-#' @param frac2 The probability mass of the second interval, a scalar between zero and one.
-#' @param alpha The significance level used to compute the test decision, a scalar between
-#'   zero and one.
+#' @param x \code{R x n} matrix with \code{R} draws of \code{n} variables
+#' @param frac1 probability mass of the first interval, a scalar between zero and one
+#' @param frac2 probability mass of the second interval, a scalar between zero and one
+#' @param alpha significance level used to compute the test decision, a scalar between
+#'   zero and one
 #'
 #' @details Under the H0 of convergence, the test statistic is standard normally distributed.
 #' @details Naturally, \code{frac1 + frac2} is between zero and one.
@@ -179,7 +191,7 @@ HPDinterval <- function(x, prob = 0.95) {
 #' @return A list with the following items
 #' \describe{
 #'   \item{h}{Test decision.}
-#'   \item{CD}{Convergence Diagnostic (test statistic)}
+#'   \item{CD}{Convergence Diagnostic (test statistic).}
 #'   \item{pvalue}{The p-value.}
 #'   \item{alpha}{The applied signifcicance level.}
 #'   \item{frac1}{The fraction of data contained in the first interval.}
@@ -187,7 +199,7 @@ HPDinterval <- function(x, prob = 0.95) {
 #' }
 #' @importFrom stats window start end spec.ar pnorm var
 #' @keywords internal
-gewekeTest <- function(x, frac1 = 0.1, frac2 = 0.5, alpha = 0.05) {
+geweke_test <- function(x, frac1 = 0.1, frac2 = 0.5, alpha = 0.05) {
   if (frac1 + frac2 > 1 | any(c(frac1, frac2) < 0) | any(c(frac1, frac2) > 1)) {
     stop("The input parameters 'frac1' and/or 'frac2' are invalid.")
   }
@@ -247,16 +259,18 @@ gewekeTest <- function(x, frac1 = 0.1, frac2 = 0.5, alpha = 0.05) {
   return(result)
 }
 
-# -------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-#' Computes MCMC summary statistics.
+#' MCMC summary statistics
+#' 
+#' @description Computes MCMC summary statistics.
 #'
-#' @param x A \code{R x n} matrix with \code{R} draws of \code{n} variables.
-#' @param HPDIprob The probability mass of the HPDI, a scalar between zero and one.
-#' @param frac1 The probability mass of the first interval used for the Geweke test, a scalar
-#'   between zero and one.
-#' @param frac2 The probability mass of the second interval used for the Geweke test, a scalar
-#'   between zero and one.
+#' @param x \code{R x n} matrix with \code{R} draws of \code{n} variables
+#' @param HPDIprob Tprobability mass of the HPDI, a scalar between zero and one
+#' @param frac1 probability mass of the first interval used for the Geweke test, a scalar
+#'   between zero and one
+#' @param frac2 probability mass of the second interval used for the Geweke test, a scalar
+#'   between zero and one
 #'
 #' @details Naturally, \code{frac1 + frac2} is between zero and one.
 #'
@@ -273,9 +287,10 @@ gewekeTest <- function(x, frac1 = 0.1, frac2 = 0.5, alpha = 0.05) {
 #'   \item{frac1}{The fraction of data contained in the first interval.}
 #'   \item{frac2}{The fraction of data contained in the second interval.}
 #' }
+#' 
 #' @importFrom stats median spec.ar var
 #' @keywords internal
-mcmcSummary <- function(x, HPDIprob, frac1 = 0.1, frac2 = 0.5) {
+mcmc_summary <- function(x, HPDIprob, frac1 = 0.1, frac2 = 0.5) {
   
   # number of variables
   x <- as.matrix(x)
@@ -297,23 +312,23 @@ mcmcSummary <- function(x, HPDIprob, frac1 = 0.1, frac2 = 0.5) {
       # naive standard errors
       seNaive[j] <- sqrt(var(x[, j]) / length(x[, j]))
       # spectral densities standard errors
-      # seTs[j] <- sqrt(spec.ar(x = x[, j], plot = FALSE)$spec[1] / length(x[, j]))
+      seTs[j] <- sqrt(spec.ar(x = x[, j], plot = FALSE)$spec[1] / length(x[, j]))
       # HPDI
-      hpd[j, ] <- HPDinterval(x[, j], prob = HPDIprob)
+      hpd[j, ] <- hpd_interval(x[, j], prob = HPDIprob)
       # Geweke test
-      tGeweke[j] <- gewekeTest(x[, j], frac1 = frac1, frac2 = frac2)$CD
+      tGeweke[j] <- geweke_test(x[, j], frac1 = frac1, frac2 = frac2)$CD
     }
   }
   
   # prepare results
   result <- data.frame(m, md, sd, hpd, seNaive, 
-                       # seTs, 
+                       seTs,
                        tGeweke, row.names = colnames(x))
   names(result) <- c(
     "Mean", "Median", "SD",
     paste0(HPDIprob * 100, "% HPDI-", c("LB", "UB")),
     "Naive SE",
-    # "Time-series SE",
+    "Time-series SE",
     "Geweke statistic"
   )
   # attributes
@@ -324,17 +339,21 @@ mcmcSummary <- function(x, HPDIprob, frac1 = 0.1, frac2 = 0.5) {
 }
 
 
-# -------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-#' Computes additional results of the Kalman filter and smoother for Bayesian output.
+#' MCMC summary statistics for states
+#' 
+#' @description Computes MCMC summary statistics for each state.
 #'
-#' @param model The return object of the function \code{fitSSM} from the package \code{KFAS}.
-#' @param state An array with the smoothed state.
+#' @param model The return object of the function \code{fitSSM} from the package \code{KFAS}
+#' @param state An array with the smoothed state
 #' @inheritParams estimate_ssmodel
-#' @importFrom KFAS mvInnovations
-#' @importFrom stats coef ts start frequency
+#' 
+#' @return List of time series.
+#' 
+#' @importFrom stats ts start frequency
 #' @keywords internal
-.SSresultsBayesian <- function(model, HPDIprob, state) {
+results_state <- function(model, HPDIprob, state) {
   ts_start <- start(model$y)
   ts_freq <- frequency(model$y)
   tsl <- list()
@@ -342,7 +361,7 @@ mcmcSummary <- function(x, HPDIprob, frac1 = 0.1, frac2 = 0.5) {
   # smoothed states
   tsl$state_summary <- lapply(setdiff(colnames(state), "const"), function(x) {
     ts(
-      mcmcSummary(x = t(state[, x, ]), HPDIprob = HPDIprob),
+      mcmc_summary(x = t(state[, x, ]), HPDIprob = HPDIprob),
       start = ts_start, 
       frequency = ts_freq
     )
@@ -356,6 +375,5 @@ mcmcSummary <- function(x, HPDIprob, frac1 = 0.1, frac2 = 0.5) {
   colnames(tsl$state_mean) <- gsub(".Mean.*", "",   colnames(tsl$state_mean))
   colnames(tsl$state_median) <- gsub(".Median.*", "",   colnames(tsl$state_median))
   
-  # tsl$obs <- model$y
   return(tsl)
 }

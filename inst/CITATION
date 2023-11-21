@@ -6,7 +6,7 @@ bibentry(
              email = "streicher@kof.ethz.ch"),
              person(given = "Alexander", 
              family = "Rathke", 
-             email = "rathke@kof.ethz.ch"))
+             email = "rathke@kof.ethz.ch")),
   journal = "{KOF} Working Papers",
   number  = "513",
   year = "2023",

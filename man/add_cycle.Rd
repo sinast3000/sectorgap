@@ -22,3 +22,4 @@ The input list \code{sys} with updated matrices.
 \description{
 Add a cycle to a state space model
 }
+\keyword{internal}

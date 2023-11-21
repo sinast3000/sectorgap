@@ -14,3 +14,4 @@ initialize_ss(name, df_settings)
 \description{
 Initializes a state space model
 }
+\keyword{internal}

@@ -27,3 +27,4 @@ random walk, \code{type = 3} and random walk with AR drift, and
 \code{type = 4} a local linear trend. \code{type = 3} is currently not
 implemented.
 }
+\keyword{internal}

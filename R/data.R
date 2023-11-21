@@ -1,6 +1,153 @@
 
 # ------------------------------------------------------------------------------
 
+#' Input data
+#' 
+#' @description Prepares the required input data, it performs the 
+#' transformations to the raw data and computes the necessary weights for the 
+#' constraints.
+#'
+#' @param tsl_n time series list with nominal level series for aggregate output 
+#' \code{agg} and its subcomponents in \code{group1, group2}
+#' @param tsl_p time series list with price series for aggregate output 
+#' \code{agg} and its subcomponents in \code{group1, group2}
+#' @param tsl time series list with all untransformed endogenous series
+#' @param ts_start start date, e.g. \code{c(2000, 2)} or \code{2000.25}
+#' @param ts_end end date, e.g. \code{c(2000, 2)} or \code{2000.25}
+#' @inheritParams define_ssmodel
+#' 
+#' @details Either \code{tsl_n} or \code{tsl_p} must be supplied
+#' 
+#' @return A list with five components:
+#' \item{tsm}{multiple time series object with all (transformed) endogneous 
+#'   variables}
+#' \item{real}{multiple time series object with real series of 
+#'   \code{agg, group1, group2}}
+#' \item{nominal}{multiple time series object with nominal series of 
+#'   \code{agg, group1, group2}}
+#' \item{prices}{multiple time series object with price series of 
+#'   \code{agg, group1, group2}}
+#' \item{weights}{list of multiple time series objects with weights for the 
+#'   constraints, i.e., for series \code{agg, group1, group2} if applicable}
+#'   
+#' @importFrom stats window start end
+#' 
+#' @export
+#' @examples
+#' data("data_ch")
+#' settings <- initialize_settings()
+#' data <- prepate_data(
+#'   settings = settings,
+#'   tsl = data_ch$tsl,
+#'   tsl_n = data_ch$tsl_n
+#' )
+prepate_data <- function(
+  settings,
+  tsl,
+  tsl_n = NULL, 
+  tsl_p = NULL,
+  ts_start = NULL,
+  ts_end = NULL
+) {
+
+  . <- NULL
+  
+  if (is.null(tsl_p) & is.null(tsl_n)) stop("Either 'tsl_p' or 'tsl_n' must be supplied.")
+  
+  # initialize
+  if (is.null(tsl_p)) {
+    tsl_p <- list() 
+    prices <- FALSE
+    tsl_r <- tsl[names(tsl_n)]
+  } else {
+    tsl_n <- list()
+    prices <- TRUE
+    tsl_r <- tsl[names(tsl_p)]
+  }
+  tsl_w <- list()
+  
+  # settings to data frames
+  df_set <- settings_to_df(x = settings)
+  endo <- df_set$obs$variable
+  
+  # aggregate
+  idx <- settings$agg$variable
+  if (!prices) {
+    tsl_p[[idx]] <- tsl_n[[idx]] / tsl_r[[idx]] * 100
+  } else {
+    tsl_n[[idx]] <- tsl_p[[idx]] / tsl_n[[idx]] * 100
+  }
+  
+  # group1, group2
+  for (ig in c("group1", "group2")) {
+    if (!is.null(settings[[ig]]$variable)) {
+      idx <- settings[[ig]]$variable
+      if (!prices) {
+        tsl_p[idx] <- lapply(idx, function(x) {
+          tsl_n[[x]] / tsl_r[[x]] * 100
+        })
+      } else {
+        tsl_n[idx] <- lapply(idx, function(x) {
+          tsl_p[[x]] * tsl_r[[x]] / 100
+        })
+      }
+      tsl_w[[ig]] <- compute_gr_weights(
+        tsl_r = c(tsl_r[c(settings$agg$variable, settings[[ig]]$variable)]),
+        tsl_n = c(tsl_n[c(settings$agg$variable, settings[[ig]]$variable)]),
+        idx = 1,
+        pos = settings[[ig]]$variable[!(settings[[ig]]$variable %in% settings[[ig]]$variable_neg)],
+        neg = settings[[ig]]$variable_neg
+      ) %>%
+        do.call(cbind, .)
+    }
+  }
+  
+  # subgroup1
+  if (!is.null(settings$subgroup1$variable)) {
+    idx <- settings$subgroup1$variable
+    tsl_w[["subgroup1"]] <- lapply(idx, function(x) {
+      stats::lag(tsl[[x]] / tsl[[settings$subgroup1$load_name]], -1)
+    }) %>%
+      do.call(cbind, .)
+    colnames(tsl_w[["subgroup1"]]) <- idx
+  }
+  
+  # construct multiple time series object with transformed series
+  tsm <- lapply(1:NROW(df_set$obs), function(x) {
+    trans <- df_set$obs$transform[x]
+    vx <- df_set$obs$variable[x]
+    if (trans) {
+      settings$fun_transform(tsl[[vx]])
+    } else {
+      tsl[[vx]]
+    }
+  }) %>%
+    do.call(cbind, .)
+  colnames(tsm) <- df_set$obs$variable
+  
+  # cut data window
+  if (is.null(ts_start)) ts_start <- start(tsm)
+  if (is.null(ts_end)) ts_end <- end(tsm)
+  tsm <- window(tsm, start = ts_start, end = ts_end, extend = TRUE)
+  tsl_r <- lapply(tsl_r, window, start = ts_start, end = ts_end, extend = TRUE)
+  tsl_p <- lapply(tsl_p, window, start = ts_start, end = ts_end, extend = TRUE)
+  tsl_n <- lapply(tsl_n, window, start = ts_start, end = ts_end, extend = TRUE)
+  tsl_w <- lapply(tsl_w, window, start = ts_start, end = ts_end, extend = TRUE)
+  
+  resl <- list(
+    tsm = tsm,
+    real = do.call(cbind, tsl_r),
+    prices = do.call(cbind, tsl_p),
+    nominal = do.call(cbind, tsl_n),
+    weights = tsl_w
+  )
+  class(resl) <- "data"
+  
+  return(resl)
+}
+
+# ------------------------------------------------------------------------------
+
 #' Computes nominal weights from sub sector data
 #'
 #' @param tsl_r time series list with real level series
@@ -12,6 +159,7 @@
 #' @return A time series list with weights.
 #' 
 #' @importFrom stats window<-
+#' @keywords internal
 compute_gr_weights <- function(tsl_r, tsl_n, idx, pos, neg) {
   
   # compute prices  
@@ -50,3 +198,4 @@ compute_gr_weights <- function(tsl_r, tsl_n, idx, pos, neg) {
 
   return(tsl_w)
 }
+

@@ -6,6 +6,7 @@
 #' @param name names of observations
 #' @param df_settings list of data frames with settings
 #' 
+#' @keywords internal
 initialize_ss <- function(name, df_settings) {
   
   k <- length(name)
@@ -45,6 +46,7 @@ initialize_ss <- function(name, df_settings) {
 #' 
 #' @return The input list \code{sys} with updated matrices.
 #'
+#' @keywords internal
 add_trend <- function(sys, type, name, const = FALSE) {
   
   k <- nrow(sys$Zt)
@@ -139,6 +141,7 @@ add_trend <- function(sys, type, name, const = FALSE) {
 #' 
 #' @return The input list \code{sys} with updated matrices.
 #'
+#' @keywords internal
 add_cycle <- function(sys, p, name, lags = NULL) {
   
   k <- nrow(sys$Zt)
@@ -231,6 +234,7 @@ add_cycle <- function(sys, p, name, lags = NULL) {
 #' 
 #' @return The input list \code{sys} with updated matrices.
 #'
+#' @keywords internal
 add_init_mat <- function(sys) {
   
   k <- nrow(sys$Zt)
@@ -278,6 +282,7 @@ add_init_mat <- function(sys) {
 #' 
 #' @return The input list \code{sys} with updated matrices.
 #'
+#' @keywords internal
 add_lag <- function(sys, name, type, lags = NULL) {
   
   k <- nrow(sys$Zt)

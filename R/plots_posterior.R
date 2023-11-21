@@ -3,17 +3,17 @@
 
 #' Prior and posterior plots
 #' 
-#' Plots the diagnostic plots of the posterior distribution.
+#' @description Creates diagnostic plots of the posterior distribution.
 #'
 #' @param fit fitted object
-#' @param alpha cut off value for posterior
-#' @inheritParams create_plots
+#' @inheritParams plot.ss_fit
 #'
 #' @importFrom stats dnorm quantile
 #' @import ggplot2
 #' @importFrom MCMCpack dinvgamma
 #' 
 #' @return nothing
+#' @keywords internal
 plot_densities <- function(
   fit, 
   file_path, 
@@ -29,12 +29,16 @@ plot_densities <- function(
   
   # to avoid RMD check note
   . <- group <- variable_label <- plot_title <- draw <- parameter_name <- 
-    posterior <- lb <- ub <- type <- NULL
+    posterior <- lb <- ub <- type <- variable <- distribution <- prior <- NULL
   
   # settings
   settings <- fit$settings
   df_set <- settings_to_df(x = settings)
-  distr <- do.call(cbind, prior <- fit$prior)
+  df_prior <- fit$prior %>% select(-variable, -parameter_name, -distribution) %>% t
+  colnames(df_prior) <- prior$parameter_name
+  # distr <- do.call(cbind, prior <- fit$prior)
+  # distr <- do.call(cbind, prior <- df_prior)
+  distr <- df_prior
   par_names <- colnames(distr)
   burnin <- attr(fit, "burnin")
   n_draws <- NROW(fit$mcmc$parameters)

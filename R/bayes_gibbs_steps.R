@@ -8,6 +8,7 @@
 #' @inheritParams .postRegression
 #' 
 #' @return A named vector of drawn parameters.
+#' @keywords internal
 draw_output_gap <- function(
   Y, 
   phi, 
@@ -46,7 +47,7 @@ draw_output_gap <- function(
 #' @param state time series matrix with states
 #' @param df_var data frame with trend and drift variance settings
 #' @param df_cov data frame with trend and drift covariance settings
-#' @param distrPar prior distribution matrix
+#' @param df_prior prior distribution matrix
 #' 
 #' @return A named vector of drawn parameters.
 #' 
@@ -57,7 +58,7 @@ draw_trend_innovations <- function(
   state,
   df_var,
   df_cov, 
-  distrPar
+  df_prior
 ) {
   
   # compute innovations
@@ -71,8 +72,8 @@ draw_trend_innovations <- function(
   # initialize    
   n_t <- ncol(eps)
   A <- matrix(0, n_t, n_t)
-  nu <- n_t + ceiling(mean(distrPar[2, df_var$parameter_name])) + 1
-  diag(A) <- distrPar[1, df_var$parameter_name] / (distrPar[2, df_var$parameter_name]-2) * (nu - n_t - 1)
+  nu <- n_t + ceiling(mean(df_prior[2, df_var$parameter_name])) + 1
+  diag(A) <- df_prior[1, df_var$parameter_name] / (df_prior[2, df_var$parameter_name]-2) * (nu - n_t - 1)
   # draw
   tmp <- draw_variance_multi(
     Y = eps,
@@ -227,6 +228,7 @@ draw_trend_innovations <- function(
 #'  275-294."
 #'  
 #' @importFrom stats rgamma
+#' @keywords internal
 .postARp <- function(Y, phi, phiDistr, sigma, sigmaDistr, const = NULL, constDistr = NULL) {
 
   # last draw
@@ -284,6 +286,7 @@ draw_trend_innovations <- function(
 #' @details See "Chib, Siddhartha. "Bayes regression with autoregressive 
 #'  errors: A Gibbs sampling approach." Journal of econometrics 58.3 (1993): 
 #'  275-294."
+#' @keywords internal
 .postARp_phi<- function(Y, phi, phiDistr, sigma, const = NULL, constDistr = NULL) {
 
   # last draw
@@ -342,6 +345,7 @@ draw_trend_innovations <- function(
 #' @return A named vector of drawn parameters.
 #' 
 #' @importFrom MCMCpack riwish
+#' @keywords internal
 draw_variance_scalar <- function(Y, nu, s) {
   
   # dimensions
@@ -405,6 +409,7 @@ draw_variance_scalar <- function(Y, nu, s) {
 #' @return A named vector of drawn parameters.
 #' 
 #' @details The mean is given by \code{Phi / (nu+p-1)} for \code{nu>p+1}.
+#' @keywords internal
 draw_variance_multi <- function(
   Y, 
   nu, 

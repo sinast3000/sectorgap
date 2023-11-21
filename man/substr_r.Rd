@@ -14,3 +14,4 @@ substr_r(x, n)
 \description{
 Extracts last letter in string
 }
+\keyword{internal}

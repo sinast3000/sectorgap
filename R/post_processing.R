@@ -1,32 +1,65 @@
 
 # ------------------------------------------------------------------------------
 
-#' Format output series
+#' Format results
 #' 
-#' This function formats the output series into a tibble in long format and 
+#' @description Formats the output series into a tibble in long format and 
 #' computes contribution series.
 #'
 #' @param fit fitted object
-#' @param tsl_w nested list of multiple time series containing (nominal) 
-#'   weights of the subgroups
-#' @param tsm_p multiple time series with price indices of relevant endogenous 
-#'   series
 #' @param estimate character specifying the posterior estimate. Valid options 
 #'   are \code{"mean"} and \code{"median"}, the default is 
 #'   \code{estimate = "median"}.
 #' @param transformed boolean indicating if the transformed series should be 
 #'   used.
+#' @param data list with at least two named components: \code{prices} is a 
+#'   multiple time series object that contains price indices for all relevant 
+#'   series, \code{weights}, is a named list of time series with (nominal) 
+#'   weights, the list names  correspond to the different groups, i.e., 
+#'   \code{group1, group2, subgroup1}, if present in the model
 #' @inheritParams define_ssmodel
 #' @inheritParams estimate_ssmodel
+#' 
+#' @details \code{data} is preferably the output of funtion \code{prepare_data}.
 #' 
 #' @return A tibble with results in long format.
 #' 
 #' @importFrom dplyr %>% left_join full_join
 #' @importFrom tidyr pivot_longer
-prepare_output <- function(
+#' 
+#' @export
+#' @examples
+#' data("data_ch")
+#' settings <- initialize_settings()
+#' data <- prepate_data(
+#'   settings = settings,
+#'   tsl = data_ch$tsl,
+#'   tsl_n = data_ch$tsl_n
+#' )
+#' model <- define_ssmodel(
+#'   settings = settings, 
+#'   data = data
+#' )
+#' prior <- initialize_prior(
+#'   model = model, 
+#'   settings = settings
+#' ) 
+#' \donttest{
+#' fit <- estimate_ssmodel(
+#'   model = model, 
+#'   settings = settings, 
+#'   prior = prior,
+#'   R = 100
+#' )
+#' df <- transform_results(
+#'   fit = fit, 
+#'   data = data,
+#'   estimate = "median"
+#' )
+#' }
+transform_results <- function(
   fit, 
-  tsl_w, 
-  tsm_p, 
+  data,
   settings, 
   estimate = "median", 
   HPDIprob = 0.68, 
@@ -37,6 +70,10 @@ prepare_output <- function(
   . <- variable <- group <- group_label <- variable_label <- obs_name <- NULL
   
   HPDI <- HPDIprob * 100  
+  
+  # data
+  tsl_w <- data$weights
+  tsm_p <- data$prices
   
   # settings to data frames
   settings <- fit$settings
@@ -114,7 +151,7 @@ prepare_output <- function(
     sig <- settings[[ig]]
     if (length(sig$variable) > 0 ) {
       
-      series <- c(sig$name_agg, sig$variable)
+      series <- c(sig$load_name, sig$variable)
       
       # gap
       if (all(series %in% colnames(tsm_p))) {
@@ -183,10 +220,11 @@ prepare_output <- function(
 }
 
 
+# ------------------------------------------------------------------------------
 
 #' Output gap contributions
 #' 
-#' This function computes chain aggregated output gap contributions.
+#' @description Computes chain aggregated output gap contributions.
 #'
 #' @param tsl_p time series list with prices
 #' @param tsl_t time series list with trends
@@ -197,9 +235,11 @@ prepare_output <- function(
 #' @param previous_year boolean indicating if previous year prices should be 
 #'   used instead of pervious period prices
 #' 
-#' @return A multiple time series object containing the contributions
+#' @return A multiple time series object containing the contributions.
 #' 
 #' @importFrom tempdisagg ta td
+#' 
+#' @keywords internal
 aggregate_gap <- function(
   tsl_p, 
   tsl_t, 

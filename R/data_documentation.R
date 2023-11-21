@@ -1,0 +1,47 @@
+
+#' Swiss data set
+#'
+#' @description A dataset containing quarterly Swiss economic data, sourced on November 20, 2023.
+#'
+#' @format A list object with two lists. The first list cotains all untransformed endogenous variables:
+#' \describe{
+#'   \item{output}{Gross domestic product at 2020 prices, in million}
+#'   \item{vaA}{value added in sector A: Goods-producing industries, at 2020 prices in million}
+#'   \item{vaB}{value added in sector B: Service industries, at 2020 prices in million}
+#'   \item{vaC}{value added in sector C: Government and adjustments,at 2020 prices in million}
+#'   \item{exp1}{expenditure side sector i: Total consumption, at 2020 prices in million}
+#'   \item{exp2}{expenditure side sector ii: Investment, at 2020 prices in million}
+#'   \item{exp3}{expenditure side sector iii: Exports, at 2020 prices in million}
+#'   \item{exp4}{expenditure side sector iv: Imports, at 2020 prices in million}
+#'   \item{fteA}{full-time equivalent empoyment in sector A: Goods-producing industries, in thousand}
+#'   \item{fteB}{full-time equivalent empoyment in sector B: Service industries, in thousand}
+#'   \item{employment}{full-time equivalent empoyment, in thousand}
+#'   \item{urate}{ILO unemployment rate, in percent}
+#'   \item{inflation}{consumer price inflation, year on year in percent}
+#' }
+#' @source KOF Swiss Economic Institute, ETH Zurich, Switzerland
+"data_ch"
+
+#' Swiss recessions
+#' 
+#' @description Recession periods in Switzerland since 1990.
+#' 
+#' @format A data frame with two columns:
+#' \describe{
+#'   \item{start}{start date of recession, in quarters}
+#'   \item{end}{end date of recession, in quarters}
+#' }
+"recessions_ch"
+
+#' US recessions
+#' 
+#' @description Recession periods in the United States since 1960.
+#' 
+#' @format A data frame with two columns:
+#' \describe{
+#'   \item{start}{start date of recession, in quarters}
+#'   \item{end}{end date of recession, in quarters}
+#' }
+#' @source National Bureau of Economic Research (NBER)
+"recessions_us"
+

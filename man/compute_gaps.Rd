@@ -2,7 +2,7 @@
 % Please edit documentation in R/bayes_estimation.R
 \name{compute_gaps}
 \alias{compute_gaps}
-\title{Computes the gaps of all observation equations}
+\title{Gaps of observation equations}
 \usage{
 compute_gaps(model, state, idx_state, idx_obs)
 }
@@ -16,7 +16,11 @@ compute_gaps(model, state, idx_state, idx_obs)
 
 \item{idx_obs}{names of all observations (excluding constraints)}
 }
+\value{
+A multiple time series object with gaps.
+}
 \description{
-This function computes the gap of each observable, i.e., it sums up the
+Computes the gap of each observable, i.e., it sums up the
 respective cycle and all cycles the observable additionally loads on.
 }
+\keyword{internal}

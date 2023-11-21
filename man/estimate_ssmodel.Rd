@@ -2,8 +2,7 @@
 % Please edit documentation in R/bayes_estimation.R
 \name{estimate_ssmodel}
 \alias{estimate_ssmodel}
-\title{Estimates the parameters and states of a multi-dimensional state-space model
-by Bayesian methods using a Gibbs sampling procedure.}
+\title{Bayesian estimation via Gibbs sampling}
 \usage{
 estimate_ssmodel(
   model,
@@ -19,7 +18,8 @@ estimate_ssmodel(
 \item{model}{state space model object, returned by the function
 \code{define_ssmodel}}
 
-\item{settings}{list with model setting (on trend, cycle, etc)}
+\item{settings}{list with model setting, in the format returned by the
+function \code{initialize_settings}}
 
 \item{prior}{list of matrices, each list item corresponds to one endogenous
 variable. See \code{initialize_prior}}
@@ -39,6 +39,31 @@ default is \code{HPDIprob = 0.68}}
 An object of class \code{fit}.
 }
 \description{
-Estimates the parameters and states of a multi-dimensional state-space model
-by Bayesian methods using a Gibbs sampling procedure.
+Estimates the parameters and states of a multi-dimensional
+state space model by Bayesian methods using a Gibbs sampling procedure.
+}
+\examples{
+data("data_ch")
+settings <- initialize_settings()
+data <- prepate_data(
+  settings = settings,
+  tsl = data_ch$tsl,
+  tsl_n = data_ch$tsl_n
+)
+model <- define_ssmodel(
+  settings = settings, 
+  data = data
+)
+prior <- initialize_prior(
+  model = model, 
+  settings = settings
+) 
+\donttest{
+fit <- estimate_ssmodel(
+  model = model, 
+  settings = settings, 
+  prior = prior,
+  R = 100
+)
+}
 }

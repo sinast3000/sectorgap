@@ -1,36 +1,21 @@
 
-#' Standard time series plots
+#' Time series plots
 #' 
-#' This function creates a set of time series plots of the results.
+#' @description Creates a set of time series plots of the results.
 #'
-#' @param df tibble/data frame containing the results (output from \code{prepare_output})
-#' @param n_col number of columns for grid plots
-#' @param n_sep increments of x axis ticks in years
-#' @param highlighted_area data frame with two columns called \code{start} and 
-#'   \code{end} containing start and end date, e.g. \code{1990.25} and 
-#'   \code{1992.75} for 1990 Q2 until 1992 Q4
-#' @param plot_start start of x axis in years, e.g., \code{1990.5}
-#' @param plot_end end of x axis in years, e.g., \code{2010.25}
-#' @param file_path file path for plots
-#' @param title boolean indicating if plots should contain titles
-#' @param save boolean indicating if plots should be saved, if \code{FALSE}, the 
-#'   plots will be printed instead , default is \code{save = TRUE}
-#' @param device character string with format used in \code{ggsave}
-#' @param width plot width in \code{units}, for grid plots adjusted for the 
-#'   number of plot columns \code{n_col}
-#' @param height plot height in \code{units}, for grid plots adjusted for the 
-#'   number of plot rows implied by \code{n_col}
-#' @param units units for plot size (\code{"in", "cm", "mm", or "px"})
+#' @param fit fitted object
 #' @inheritParams define_ssmodel
-#' 
-#' @return nothing
+#' @inheritParams plot.ss_fit
 #' 
 #' @import dplyr
 #' @importFrom grDevices hcl.colors
 #' @importFrom stats aggregate
-create_plots <- function(
+#' 
+#' @return nothing
+#' 
+#' @keywords internal
+plot_time_series <- function(
   df,
-  settings,
   n_col = 3,
   n_sep = 5,
   highlighted_area = NULL,
@@ -48,9 +33,10 @@ create_plots <- function(
   # to avoid RMD check note
   group <- type <- obs_name <- series_label <- value <- obs <- lb <- ub <- 
     HPDI <- series <- . <- sector <- idiosynchratic <- gap <- common <- 
-    contr <- NULL
+    contr <- fit <- NULL
   
   # settings to data frames
+  settings <- fit$settings
   df_set <- settings_to_df(x = settings)
   
   # x axis settings

@@ -16,3 +16,4 @@ ts_c(c = 0, tsm)
 Creates a constant time series with same dates and frequency as the one
 given.
 }
+\keyword{internal}

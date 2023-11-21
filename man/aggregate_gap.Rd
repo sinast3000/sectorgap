@@ -31,8 +31,9 @@ aggregate_gap(
 used instead of pervious period prices}
 }
 \value{
-A multiple time series object containing the contributions
+A multiple time series object containing the contributions.
 }
 \description{
-This function computes chain aggregated output gap contributions.
+Computes chain aggregated output gap contributions.
 }
+\keyword{internal}

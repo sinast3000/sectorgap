@@ -22,3 +22,4 @@ Draws a variance from an inverse Wishart distribution.
 \details{
 The mean is given by \code{s / (nu+p-1)} for \code{nu>p+1}.
 }
+\keyword{internal}

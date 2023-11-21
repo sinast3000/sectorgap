@@ -24,10 +24,11 @@ plot_densities(
 
 \item{n_col}{number of columns for grid plots}
 
-\item{alpha}{cut off value for posterior}
+\item{alpha}{cut off value for posterior (only used if \code{"density"})}
 
 \item{save}{boolean indicating if plots should be saved, if \code{FALSE}, the
-plots will be printed instead , default is \code{save = TRUE}}
+plots will be printed instead, default is \code{save = FALSE} (ignored if
+\code{file_path} is provided)}
 
 \item{title}{boolean indicating if plots should contain titles}
 
@@ -45,5 +46,6 @@ number of plot rows implied by \code{n_col}}
 nothing
 }
 \description{
-Plots the diagnostic plots of the posterior distribution.
+Creates diagnostic plots of the posterior distribution.
 }
+\keyword{internal}

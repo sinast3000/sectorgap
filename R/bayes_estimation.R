@@ -1,8 +1,10 @@
 
 # ------------------------------------------------------------------------------
 
-#' Estimates the parameters and states of a multi-dimensional state-space model 
-#' by Bayesian methods using a Gibbs sampling procedure.
+#' Bayesian estimation via Gibbs sampling
+#' 
+#' @description Estimates the parameters and states of a multi-dimensional 
+#' state space model by Bayesian methods using a Gibbs sampling procedure.
 #'
 #' @inheritParams define_ssmodel
 #' @param model state space model object, returned by the function 
@@ -22,6 +24,33 @@
 #' @importFrom KFAS simulateSSM
 #' @importFrom stats start ts frequency
 #' @importFrom utils txtProgressBar setTxtProgressBar
+#' @importFrom dplyr %>% select
+#' 
+#' @export
+#' @examples
+#' data("data_ch")
+#' settings <- initialize_settings()
+#' data <- prepate_data(
+#'   settings = settings,
+#'   tsl = data_ch$tsl,
+#'   tsl_n = data_ch$tsl_n
+#' )
+#' model <- define_ssmodel(
+#'   settings = settings, 
+#'   data = data
+#' )
+#' prior <- initialize_prior(
+#'   model = model, 
+#'   settings = settings
+#' ) 
+#' \donttest{
+#' fit <- estimate_ssmodel(
+#'   model = model, 
+#'   settings = settings, 
+#'   prior = prior,
+#'   R = 100
+#' )
+#' }
 estimate_ssmodel <- function(
   model, 
   settings, 
@@ -32,6 +61,12 @@ estimate_ssmodel <- function(
   HPDIprob = 0.68
 ){
   
+  # save call
+  mc <- match.call(expand.dots = FALSE)
+  
+  # to avoid RMD check note
+  variable <- parameter_name <- distribution <- NULL
+  
   # settings to data frames (for ssm parameter assignment)
   df_set <- settings_to_df(x = settings)
   endo <- df_set$obs$variable
@@ -40,17 +75,20 @@ estimate_ssmodel <- function(
   hlp <- helper_posterior_assignment(
     model = model,
     df_set = df_set, 
+    prior = prior,
     endo = endo
   )
   
   # ----- prior
   
   # prior distributions
-  distrPar <- do.call(cbind, prior)
-  nPar <- ncol(distrPar)
+  # df_prior <- do.call(cbind, prior)
+  df_prior <- prior %>% select(-variable, -parameter_name, -distribution) %>% t
+  colnames(df_prior) <- prior$parameter_name
+  nPar <- ncol(df_prior)
   
   # initial values
-  pars <- distrPar["ini", ]
+  pars <- df_prior["ini", ]
   
   # covariances
   pars_covar <- sapply(df_set$covariance$parameter_name, function(x) 0)
@@ -86,11 +124,13 @@ estimate_ssmodel <- function(
   count <- 0
 
   # print details and progress
-  cat("\n")
-  cat("\nBayesian Estimation \n\n")
-  cat(paste0("  Skipped draws (thinning) \t", thin - 1, "\n"))
-  cat(paste0("  Number of draws \t\t", R, "\n\n"))
-  
+  message(
+    paste0(
+      "Bayesian Estimation\n",
+      "\tNumber of draws \t\t", R, "\n",
+      "\tSkipped draws\t", thin - 1, "/", thin
+    )
+  )
   
   timec <- rep(0, 6)
   
@@ -123,7 +163,7 @@ estimate_ssmodel <- function(
       state = state_smoothed,
       df_var = hlp$step2$variance_ncycle,
       df_cov = hlp$step2$covariance,
-      distrPar = distrPar
+      df_prior = df_prior
     )[hlp$step2$names]
     
     end.time3 <- Sys.time()
@@ -135,10 +175,10 @@ estimate_ssmodel <- function(
       pars[c(lx$const, lx$phi)] <- .postARp_phi(
         Y = state_smoothed[, lx$state], 
         phi = pars[lx$phi], 
-        phiDistr = distrPar[, lx$phi, drop = FALSE], 
+        phiDistr = df_prior[, lx$phi, drop = FALSE], 
         sigma = pars[lx$var_cycle], 
         const = pars[lx$const], 
-        constDistr = distrPar[, lx$const, drop = FALSE]
+        constDistr = df_prior[, lx$const, drop = FALSE]
       )[c(lx$const, lx$phi)]
     }
     
@@ -147,9 +187,9 @@ estimate_ssmodel <- function(
     pars[hlp$step3$pars_regression] <- draw_output_gap(
       Y = state_smoothed[, paste0("cycle_", hlp$step3$endo)], 
       phi = pars[hlp$step3$phi],
-      phiDistr =  distrPar[, hlp$step3$phi, drop = FALSE],
+      phiDistr =  df_prior[, hlp$step3$phi, drop = FALSE],
       sigma = pars[hlp$step3$var_cycle],
-      sigmaDistr =  distrPar[, hlp$step3$var_cycle, drop = FALSE]
+      sigmaDistr =  df_prior[, hlp$step3$var_cycle, drop = FALSE]
     )[hlp$step3$pars_regression]
       
     end.time4 <- Sys.time()
@@ -179,11 +219,11 @@ estimate_ssmodel <- function(
         Y = Y[, x], 
         X = state_smoothed[, lx$Xnames], 
         beta = pars[lx$load], 
-        betaDistr = distrPar[, lx$load, drop = FALSE], 
+        betaDistr = df_prior[, lx$load, drop = FALSE], 
         sigma = pars[lx$var_cycle],
-        sigmaDistr = distrPar[, lx$var_cycle, drop = FALSE], 
+        sigmaDistr = df_prior[, lx$var_cycle, drop = FALSE], 
         phi = pars[lx$phi],
-        phiDistr = distrPar[, lx$phi, drop = FALSE]
+        phiDistr = df_prior[, lx$phi, drop = FALSE]
       )[lx$pars_regression]
 
       
@@ -249,28 +289,31 @@ estimate_ssmodel <- function(
   )
   
   # obtain results
-  fit <- estimation_results(
+  fit <- compute_mcmc_results(
     model = model,
     settings = settings, 
     HPDIprob = HPDIprob, 
     mcmc = mcmc
   ) 
+  attr(fit, "call") <- mc
   
-  
-  invisible(fit)
+  return(fit)
 }
 
 # ------------------------------------------------------------------------------
 
-#' Computes the gaps of all observation equations
+#' Gaps of observation equations
 #' 
-#' This function computes the gap of each observable, i.e., it sums up the 
+#' @description Computes the gap of each observable, i.e., it sums up the 
 #' respective cycle and all cycles the observable additionally loads on.
 #'
 #' @inheritParams estimate_ssmodel
 #' @param state state vector
 #' @param idx_state names of all cycle states
 #' @param idx_obs names of all observations (excluding constraints)
+#' 
+#' @return A multiple time series object with gaps.
+#' @keywords internal
 compute_gaps <- function(
   model, 
   state, 
@@ -297,22 +340,28 @@ compute_gaps <- function(
 
 # ------------------------------------------------------------------------------
 
-#' List of model setting necessary to draw from posterior
+#' Settings for draws from posterior
 #' 
-#' This function returns a list of items necessary to run each each step of the 
-#' Gibbs sampler.
+#' @description Creates a list of settings used during the Gibbs sampling 
+#' algorithm.
 #'
 #' @inheritParams update_ssmodel
 #' @param endo character vector of endogenous variable names
 #' 
+#' @importFrom dplyr %>% filter
+#' 
+#' @return A list of items necessary to run each each step of the 
+#' Gibbs sampler.
+#' @keywords internal
 helper_posterior_assignment <- function(
   model,
   df_set, 
+  prior,
   endo
 ) {
   
   # to avoid RMD check note
-  type <- prior <- NULL
+  type <- variable <- . <- NULL
   
   # helper list for posterior draws
   hlp <- list(
@@ -345,7 +394,7 @@ helper_posterior_assignment <- function(
     step4 = lapply(endo, function(x) {
       within(list(), {
         endo <- x
-        pars <- colnames(prior[[x]])
+        pars <- (prior %>% filter(variable == x) %>% .$parameter_name)
         load <- pars[grepl("_load_", pars)]
         load_type <- gsub("_load_.*", "", load)
         load_y <- gsub("_.*", "",gsub(paste0(".*", x, "_"),"", load))

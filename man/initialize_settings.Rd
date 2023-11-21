@@ -2,7 +2,7 @@
 % Please edit documentation in R/settings.R
 \name{initialize_settings}
 \alias{initialize_settings}
-\title{Settings}
+\title{Model settings}
 \usage{
 initialize_settings(
   FUN_transform = function(x) 100 * log(x),
@@ -10,26 +10,58 @@ initialize_settings(
 )
 }
 \arguments{
-\item{FUN_transform}{transformation function}
+\item{FUN_transform}{transformation function, the default is
+\code{function(x) 100 * log(x)}}
 
-\item{FUN_transform_inv}{inverse transformation function}
+\item{FUN_transform_inv}{inverse transformation function, the default is
+\code{function(x) exp(x / 100)}}
 }
 \value{
-A nested list with settings for different groups, namely
-\item{agg}{List with settings for the aggregate variable.}
-\item{group1}{List with settings for the first subgroup, all variables
-in this group load on the aggregate variable.}
-\item{group2}{List with settings for the second subgroup, all variables
-this group load on the aggregate variable.}
-\item{subgroup1}{List with settings for the corresponding group to
-\code{group1}, all variables in this group load on the respective
-counterpart in \code{group1}.}
-\item{agggroup}{List with settings for a group of aggregate variables, all
-variables in this group load on the aggregate variable.}
-\item{misc}{Nested list with settings for miscellaneous variables that do
-not fit into any other list, settings for these variables are set
-individually and are more flexible.}
+A nested list with settings for the following groups:
+\item{agg}{settings for the aggregate variable}
+\item{group1}{settings for \code{group1}, all variables in this group load
+on the aggregate variable, unless otherwise specified}
+\item{group2}{settings for \code{group2}, all variables in this group load
+on the aggregate variable, unless otherwise specified}
+\item{subgroup1}{settings for \code{subgroup1}, each variable in this group
+loads on the respective variable in \code{group1}}
+\item{agggroup}{settings for a group of variables that all load on the same
+variable}
+\item{misc}{settings for variables that require individual settings}
+Each group contains at least the following list items:
+\item{trend}{\code{4} is a local linear trend, \code{3} a local linear
+trend with AR(1) drift, \code{2} a local linear drift without shocks to
+trend growth, \code{0} implies no trend (e.g. if a variable shares a trend
+with another one)}
+\item{cycle}{\code{2} is an AR(2) cycle, \code{1} an AR(1) cycle, and
+\code{0} a white noise cycle, each with normal innovations}
+\item{transform}{logical indicating if the transformation function should
+be applied to the variable or group of variables}
+\item{variable}{variable name(s)}
+\item{variable_label}{variable label(s)}
+\item{label}{label of group}
+The blocks \code{group1, group2, subgroup1} additionally contain the
+following list items:
+\item{corr}{\code{4} implies that trends and drifts are correlated,
+\code{2} that only dirfts are correlated, \code{1} that only trends are
+correlated, and \code{0} or \code{NA} implies no correlation. Only
+applicable for \code{group1, group2, subgroup1}}
+\item{load_name}{name of the variable that all variables in the group load
+(for \code{group1, group2}) and which is used for the aggregation}
+\item{load_lag}{lags of the of the variable that all variables in the group
+load (for \code{group1, group2})}
+\item{name_residual}{name of the residual in case variables do not add up,
+and if aggregation constraints are present (for
+\code{group1, group2, subgroup1})}
+\item{constr_drift}{logical indicating if constraints for the drifts should
+be enforced}
+\item{constr_trends}{logical indicating if constraints for the trends
+should be enforced}
+\item{prefix}{a character string by which the variables in \code{group1}
+and \code{subgroup1} should be matched}
+\item{variable_neg}{variable names that are negative and thus need to be
+subtracted when constructing weights}
 }
 \description{
-This function initializes settings with a basic example.
+Initializes settings with a basic example.
 }

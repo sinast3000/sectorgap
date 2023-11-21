@@ -2,13 +2,18 @@
 % Please edit documentation in R/settings.R
 \name{settings_to_df}
 \alias{settings_to_df}
-\title{Create data frame with all model settings}
+\title{Data frames with model settings}
 \usage{
 settings_to_df(x)
 }
 \arguments{
-\item{x}{list with model setting (on trend, cycle, etc)}
+\item{x}{list with model setting}
+}
+\value{
+A list with data frames containing model settings.
 }
 \description{
-Create data frame with all model settings
+Creates a list of data frames with model settings regarding the
+state space model.
 }
+\keyword{internal}

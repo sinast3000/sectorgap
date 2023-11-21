@@ -2,7 +2,7 @@
 % Please edit documentation in R/ss_model.R
 \name{update_ssmodel}
 \alias{update_ssmodel}
-\title{Updates the system matrices for a state space model}
+\title{State space model update}
 \usage{
 update_ssmodel(pars, model, settings, df_set)
 }
@@ -11,7 +11,8 @@ update_ssmodel(pars, model, settings, df_set)
 
 \item{model}{state space model object}
 
-\item{settings}{list with model setting (on trend, cycle, etc)}
+\item{settings}{list with model setting, in the format returned by the
+function \code{initialize_settings}}
 
 \item{df_set}{data frame with model settings}
 }
@@ -19,5 +20,22 @@ update_ssmodel(pars, model, settings, df_set)
 The state space model object \code{model} with updates matrices.
 }
 \description{
-Updates the system matrices for a state space model
+Updates the system matrices of a state space model.
 }
+\details{
+\code{data} is preferably the output of funtion \code{prepare_data}.
+}
+\examples{
+data("data_ch")
+settings <- initialize_settings()
+data <- prepate_data(
+  settings = settings,
+  tsl = data_ch$tsl,
+  tsl_n = data_ch$tsl_n
+)
+model <- define_ssmodel(
+  settings = settings, 
+  data = data
+)
+}
+\keyword{internal}

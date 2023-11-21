@@ -22,3 +22,4 @@ The input list \code{sys} with updated matrices.
 \description{
 Add lags to state equation
 }
+\keyword{internal}
