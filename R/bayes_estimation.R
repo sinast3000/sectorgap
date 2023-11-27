@@ -19,7 +19,7 @@
 #' @param HPDIprob probability of highest posterior density interval, the 
 #'  default is \code{HPDIprob = 0.68}
 #'
-#' @return An object of class \code{fit}.
+#' @return An object of class \code{ss_fit}.
 #'
 #' @importFrom KFAS simulateSSM
 #' @importFrom stats start ts frequency
@@ -182,15 +182,21 @@ estimate_ssmodel <- function(
       )[c(lx$const, lx$phi)]
     }
     
-    # step 3: output gap -------------------------------------------------------
+    # step 3: observation equations without loadings ---------------------------
+    # e.g. the output gap
     
-    pars[hlp$step3$pars_regression] <- draw_output_gap(
-      Y = state_smoothed[, paste0("cycle_", hlp$step3$endo)], 
-      phi = pars[hlp$step3$phi],
-      phiDistr =  df_prior[, hlp$step3$phi, drop = FALSE],
-      sigma = pars[hlp$step3$var_cycle],
-      sigmaDistr =  df_prior[, hlp$step3$var_cycle, drop = FALSE]
-    )[hlp$step3$pars_regression]
+    for (x in names(hlp$step3)) {
+      
+      lx <- hlp$step3[[x]]
+      
+      pars[lx$pars_regression] <- draw_output_gap(
+        Y = state_smoothed[, paste0("cycle_", lx$endo)], 
+        phi = pars[lx$phi],
+        phiDistr =  df_prior[, lx$phi, drop = FALSE],
+        sigma = pars[lx$var_cycle],
+        sigmaDistr =  df_prior[, lx$var_cycle, drop = FALSE]
+      )[lx$pars_regression]
+    }
       
     end.time4 <- Sys.time()
     
@@ -210,8 +216,8 @@ estimate_ssmodel <- function(
 
     end.time5 <- Sys.time()
     
-    for (x in endo[-1]) {
-      
+    for (x in names(hlp$step4)) {
+
       lx <- hlp$step4[[x]]
 
       # draw parameters
@@ -408,7 +414,8 @@ helper_posterior_assignment <- function(
     })
   )
   names(hlp$step4) <- endo
-  hlp$step3 <- hlp$step4[[endo[[1]]]]
+  hlp$step3 <- hlp$step4[!(endo %in% df_set$loadings$variable)]
+  hlp$step4 <- hlp$step4[endo %in% df_set$loadings$variable]
 
   return(hlp)
 }
