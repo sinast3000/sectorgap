@@ -7,7 +7,7 @@
 #' @param x object of class \code{settings}
 #' @param call logical, if \code{TRUE}, the call will be printed
 #' @param check logical, if \code{TRUE}, the model class will be checked
-#' @param ... Ignored.
+#' @param ... ignored.
 #' @return No return value
 #' @export
 print.settings <- function(x, call = TRUE, check = TRUE, ...) {
@@ -139,7 +139,7 @@ print.settings <- function(x, call = TRUE, check = TRUE, ...) {
 #' @param x object of class \code{ss_model}
 #' @param call logical, if \code{TRUE}, the call will be printed
 #' @param check logical, if \code{TRUE}, the model class will be checked
-#' @param ... Ignored.
+#' @param ... ignored.
 #' @return No return value
 #' @export
 print.ss_model <- function(x, call = TRUE, check = TRUE, ...) {
@@ -177,7 +177,7 @@ print.ss_model <- function(x, call = TRUE, check = TRUE, ...) {
 #' @param x object of class \code{prior}
 #' @param call logical, if \code{TRUE}, the call will be printed
 #' @param check logical, if \code{TRUE}, the model class will be checked
-#' @param ... Ignored.
+#' @param ... ignored.
 #' @return No return value
 #' 
 #' @importFrom dplyr %>% filter
@@ -218,7 +218,7 @@ print.prior <- function(x, call = TRUE, check = TRUE, ...) {
 #' @param x object of class \code{ss_fit}
 #' @param call logical, if \code{TRUE}, the call will be printed
 #' @param check logical, if \code{TRUE}, the model class will be checked
-#' @param ... Ignored.
+#' @param ... ignored.
 #' 
 #' @return No return value
 #' 
@@ -275,7 +275,7 @@ print.ss_fit<- function(x, call = TRUE, check = TRUE, ...) {
     cat("\n\n  Non-converged parameters:\n" )
     print(pars_nconverge)
   }
-  if (sum(pars_nconverge_idx) > 0) {
+  if (sum(states_nconverge_idx) > 0) {
     cat("\n  Non-converged states:\n" )
     print(states_nconverge, row.names = FALSE)
   }

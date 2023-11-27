@@ -13,7 +13,7 @@
 
 \item{check}{logical, if \code{TRUE}, the model class will be checked}
 
-\item{...}{Ignored.}
+\item{...}{ignored.}
 }
 \value{
 No return value
