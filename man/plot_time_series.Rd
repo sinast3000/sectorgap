@@ -27,13 +27,14 @@ plot_time_series(
 
 \item{highlighted_area}{data frame with two columns called \code{start} and
 \code{end} containing start and end date, e.g. \code{1990.25} and
-\code{1992.75} for 1990 Q2 until 1992 Q4 (only used if \code{"timeseries"})}
+\code{1992.75} for 1990 Q2 until 1992 Q4
+(only used if \code{plot_type = "timeseries"})}
 
 \item{plot_start}{start of x axis in years, e.g., \code{1990.5} (only used if
-\code{"timeseries"})}
+\code{plot_type = "timeseries"})}
 
 \item{plot_end}{end of x axis in years, e.g., \code{2010.25} (only used if
-\code{"timeseries"})}
+\code{plot_type = "timeseries"})}
 
 \item{file_path}{file path for plots}
 

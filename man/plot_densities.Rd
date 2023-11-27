@@ -24,7 +24,8 @@ plot_densities(
 
 \item{n_col}{number of columns for grid plots}
 
-\item{alpha}{cut off value for posterior (only used if \code{"density"})}
+\item{alpha}{cut off value for posterior (only used if
+\code{plot_type = "density"})}
 
 \item{save}{boolean indicating if plots should be saved, if \code{FALSE}, the
 plots will be printed instead, default is \code{save = FALSE} (ignored if

@@ -20,12 +20,14 @@
 #' @param units units for plot size (\code{"in", "cm", "mm", or "px"})
 #' @param highlighted_area data frame with two columns called \code{start} and 
 #'   \code{end} containing start and end date, e.g. \code{1990.25} and 
-#'   \code{1992.75} for 1990 Q2 until 1992 Q4 (only used if \code{"timeseries"})
+#'   \code{1992.75} for 1990 Q2 until 1992 Q4 
+#'   (only used if \code{plot_type = "timeseries"})
 #' @param plot_start start of x axis in years, e.g., \code{1990.5} (only used if 
-#'   \code{"timeseries"})
+#'   \code{plot_type = "timeseries"})
 #' @param plot_end end of x axis in years, e.g., \code{2010.25} (only used if 
-#'   \code{"timeseries"})
-#' @param alpha cut off value for posterior (only used if \code{"density"})
+#'   \code{plot_type = "timeseries"})
+#' @param alpha cut off value for posterior (only used if 
+#'   \code{plot_type = "density"})
 #' @param ... ignored
 #' @inheritParams define_ssmodel
 #' @inheritParams transform_results
@@ -40,9 +42,6 @@ plot.ss_fit <- function(
   data = data,
   n_col = 3,
   n_sep = 5,
-  highlighted_area = NULL,
-  plot_start = NULL,
-  plot_end = NULL,
   file_path = NULL,
   title = TRUE,
   save = FALSE,
@@ -50,6 +49,9 @@ plot.ss_fit <- function(
   width = 10,
   height = 3,
   units = "in",
+  highlighted_area = NULL,
+  plot_start = NULL,
+  plot_end = NULL,
   alpha = 0.05,
   ...
 ) {
@@ -72,6 +74,7 @@ plot.ss_fit <- function(
     
     plot_time_series(
       df = df,
+      settings = x$settings,
       n_col = n_col,
       n_sep = n_sep,
       highlighted_area = highlighted_area,

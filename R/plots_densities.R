@@ -35,11 +35,8 @@ plot_densities <- function(
   settings <- fit$settings
   df_set <- settings_to_df(x = settings)
   df_prior <- fit$prior %>% select(-variable, -parameter_name, -distribution) %>% t
-  colnames(df_prior) <- prior$parameter_name
-  # distr <- do.call(cbind, prior <- fit$prior)
-  # distr <- do.call(cbind, prior <- df_prior)
-  distr <- df_prior
-  par_names <- colnames(distr)
+  colnames(df_prior) <- fit$prior$parameter_name
+  par_names <- colnames(df_prior)
   burnin <- attr(fit, "burnin")
   n_draws <- NROW(fit$mcmc$parameters)
   
@@ -96,7 +93,7 @@ plot_densities <- function(
                 draw = floor(n_draws * burnin+1):n_draws,
                 parameter_name = x,
                 grid = grid,
-                prior = dnorm(grid, distr[1, x], sqrt(distr[2, x]))
+                prior = dnorm(grid, df_prior[1, x], sqrt(df_prior[2, x]))
               )
             }) %>%
             do.call(rbind, .)
@@ -203,7 +200,7 @@ plot_densities <- function(
           draw = floor(n_draws * burnin+1):n_draws,
           parameter_name = x,
           grid = grid,
-          prior = dinvgamma(grid, shape = distr[2, x]/2, scale = distr[1, x]/2)
+          prior = dinvgamma(grid, shape = df_prior[2, x]/2, scale = df_prior[1, x]/2)
         )
       }) %>%
         do.call(rbind, .)

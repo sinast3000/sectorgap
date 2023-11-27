@@ -16,6 +16,7 @@
 #' @keywords internal
 plot_time_series <- function(
   df,
+  settings = settings,
   n_col = 3,
   n_sep = 5,
   highlighted_area = NULL,
@@ -36,7 +37,6 @@ plot_time_series <- function(
     contr <- fit <- NULL
   
   # settings to data frames
-  settings <- fit$settings
   df_set <- settings_to_df(x = settings)
   
   # x axis settings

@@ -11,9 +11,6 @@
   data = data,
   n_col = 3,
   n_sep = 5,
-  highlighted_area = NULL,
-  plot_start = NULL,
-  plot_end = NULL,
   file_path = NULL,
   title = TRUE,
   save = FALSE,
@@ -21,6 +18,9 @@
   width = 10,
   height = 3,
   units = "in",
+  highlighted_area = NULL,
+  plot_start = NULL,
+  plot_end = NULL,
   alpha = 0.05,
   ...
 )
@@ -44,16 +44,6 @@ if present in the model}
 
 \item{n_sep}{increments of x axis ticks in years}
 
-\item{highlighted_area}{data frame with two columns called \code{start} and
-\code{end} containing start and end date, e.g. \code{1990.25} and
-\code{1992.75} for 1990 Q2 until 1992 Q4 (only used if \code{"timeseries"})}
-
-\item{plot_start}{start of x axis in years, e.g., \code{1990.5} (only used if
-\code{"timeseries"})}
-
-\item{plot_end}{end of x axis in years, e.g., \code{2010.25} (only used if
-\code{"timeseries"})}
-
 \item{file_path}{file path for plots}
 
 \item{title}{boolean indicating if plots should contain titles}
@@ -72,7 +62,19 @@ number of plot rows implied by \code{n_col}}
 
 \item{units}{units for plot size (\code{"in", "cm", "mm", or "px"})}
 
-\item{alpha}{cut off value for posterior (only used if \code{"density"})}
+\item{highlighted_area}{data frame with two columns called \code{start} and
+\code{end} containing start and end date, e.g. \code{1990.25} and
+\code{1992.75} for 1990 Q2 until 1992 Q4
+(only used if \code{plot_type = "timeseries"})}
+
+\item{plot_start}{start of x axis in years, e.g., \code{1990.5} (only used if
+\code{plot_type = "timeseries"})}
+
+\item{plot_end}{end of x axis in years, e.g., \code{2010.25} (only used if
+\code{plot_type = "timeseries"})}
+
+\item{alpha}{cut off value for posterior (only used if
+\code{plot_type = "density"})}
 
 \item{...}{ignored}
 }
