@@ -51,11 +51,13 @@
 #'   be enforced}
 #'   \item{constr_trends}{logical indicating if constraints for the trends 
 #'   should be enforced}   
-#'   \item{prefix}{a character string by which the variables in \code{group1} 
-#'   and \code{subgroup1} should be matched}
 #'   \item{variable_neg}{variable names that are negative and thus need to be 
 #'   subtracted when constructing weights}
-#'         
+#' The block \code{subgroup1} additionally contain the 
+#' following list item:
+#'   \item{match_group1}{a character vector of the same length as 
+#'   \code{variable} indicating the matching variables in \code{group1}, in the 
+#'   same order as \code{variable}, \code{NA} indicates no match}
 #' @export
 #'         
 initialize_settings <- function(
@@ -91,7 +93,7 @@ initialize_settings <- function(
       "vaB",
       "vaC"
     ),
-    prefix = "va",
+    # prefix = "va",
     variable_neg = NULL,
     transform = TRUE,
     load_name = set$agg$variable,
@@ -114,17 +116,23 @@ initialize_settings <- function(
     constr_drift = TRUE,
     variable = c(
       "fteA",
-      "fteB"
+      "fteB",
+      "fteC"
     ),    
-    prefix = "fte",
+    # prefix = "fte",
     transform = TRUE,
+    match_group1 = c(
+      "vaA",
+      "vaB",
+      NA
+    ),
     load_name = "employment",
-    name_residual = "resempl",
+    # name_residual = "resempl",
     label = "Employment",
     variable_label = c(
       "A: Goods-producing industries",
       "B: Service industries",
-      "Residual"
+      "C: Government and adjustments"
     )
   )
   
@@ -290,6 +298,30 @@ settings_to_df <- function(x) {
       )
     }
   }  
+  # # constraint variables
+  # for (jx in c("group1", "subgroup1", "group2")) {
+  #   lx <- x[[jx]]
+  #   if (!is.null(lx$name_residual) & (lx$constr_drift | lx$constr_trend)) {
+  #     ix <- lx$name_residual
+  #     count <- count + 1
+  #     dfl[[count]] <- data.frame(
+  #       variable = ix,
+  #       variable_label = paste0("Residual contr. ", lx$label),
+  #       variable_neg = NA,
+  #       variable_pos = NA,
+  #       trend = lx$trend,
+  #       cycle = lx$cycle,
+  #       corr = NA,
+  #       constr_drift = ifelse(is.null(lx$constr_drift), NA, lx$constr_drift),
+  #       constr_trend = ifelse(is.null(lx$constr_trend), NA, lx$constr_trend),
+  #       constr_cycle = ifelse(is.null(lx$constr_cycle), NA, lx$constr_cycle),
+  #       group = paste0(jx, "_residual"),
+  #       group_label = paste0(lx$label, " residual"),
+  #       transform = FALSE
+  #     )
+  #   }
+  # }
+  
   df_obs <- do.call(rbind, dfl)
   
   #  ------ loadings
@@ -313,23 +345,24 @@ settings_to_df <- function(x) {
     }
   }
   for (lx in x[c("subgroup1")]) {
+    count_ix <- 0
     for (ix in lx$variable)  {
-      for (jx in lx$load_lag) {
-        count <- count + 1
-        dfl_loadings[[count]] <- data.frame(
-          variable = ix,
-          loads_on = x$group1$variable[
-            grep(
-              gsub(lx$prefix, "", ix), 
-              gsub(x$group1$prefix, "", x$group1$variable))
-          ],
-          lag = jx,
-          type = "cycle"
-        ) %>%
-          mutate(
-            parameter_name = paste0(type, "_load_", ix, "_", loads_on, "_L", lag),
-            loading_state = gsub("_L0", "", paste0(type, "_", loads_on, "_L", lag))
-          )
+      count_ix <- count_ix + 1
+      loads_on_ix <- lx$match_group1[count_ix]
+      if (!is.na(loads_on_ix)) {
+        for (jx in lx$load_lag) {
+          count <- count + 1
+          dfl_loadings[[count]] <- data.frame(
+            variable = ix,
+            loads_on = loads_on_ix,
+            lag = jx,
+            type = "cycle"
+          ) %>%
+            mutate(
+              parameter_name = paste0(type, "_load_", ix, "_", loads_on, "_L", lag),
+              loading_state = gsub("_L0", "", paste0(type, "_", loads_on, "_L", lag))
+            )
+        }
       }
     }
   }

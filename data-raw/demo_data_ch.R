@@ -4,6 +4,7 @@ rm(list=ls())
 
 # # packages
 library(timeseriesdb)
+library(zoo)
 
 # RAW DATA ---------------------------------------------------------------------
 
@@ -156,6 +157,7 @@ tsl_endo$inflation <- 100 * (tsl$cpi / stats::lag(tsl$cpi, k = - 4) - 1)
 # subgroup1: full time equivalent employment
 tsl_endo$fteA <- Reduce("+", tsl[paste0("vzaeq", c("b", "c", "d", "e", "f"))])
 tsl_endo$fteB <- Reduce("+", tsl[paste0("vzaeq", c("g", "h", "j", "i", "k", "l", "m", "n", "p", "q", "r", "s"))])
+tsl_endo$fteC <- Reduce("+", tsl[paste0("vzaeq", c("o"))])
 
 data_ch <- list(
   tsl = tsl_endo,

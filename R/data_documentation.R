@@ -15,6 +15,7 @@
 #'   \item{exp4}{expenditure side sector iv: Imports, at 2020 prices in million}
 #'   \item{fteA}{full-time equivalent empoyment in sector A: Goods-producing industries, in thousand}
 #'   \item{fteB}{full-time equivalent empoyment in sector B: Service industries, in thousand}
+#'   \item{fteC}{full-time equivalent empoyment in government sector, in thousand}
 #'   \item{employment}{full-time equivalent empoyment, in thousand}
 #'   \item{urate}{ILO unemployment rate, in percent}
 #'   \item{inflation}{consumer price inflation, year on year in percent}
