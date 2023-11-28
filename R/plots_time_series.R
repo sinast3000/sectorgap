@@ -33,7 +33,7 @@ plot_time_series <- function(
 
   # to avoid RMD check note
   group <- type <- obs_name <- series_label <- value <- obs <- lb <- ub <- 
-    HPDI <- series <- . <- sector <- idiosynchratic <- gap <- common <- 
+    HPDI <- series <- . <- idiosynchratic <- gap <- common <- 
     contr <- fit <- NULL
   
   # settings to data frames
@@ -304,22 +304,22 @@ plot_time_series <- function(
     tab1 <- df %>% 
       filter(type %in% "cycle", obs_name %in% plotl[[px]]$obs_name) %>%
       mutate(idiosynchratic = value) %>%
-      select(date, obs_name, sector, series_label, idiosynchratic) 
+      select(date, obs_name, series_label, idiosynchratic) 
     tab2 <- df %>% 
       filter(type %in% "gap", obs_name %in% plotl[[px]]$obs_name) %>%
       mutate(gap = value) %>%
-      full_join(tab1, tab2, by = c("date", "obs_name", "sector", "series_label")) %>%
+      full_join(tab1, tab2, by = c("date", "obs_name", "series_label")) %>%
       mutate(common = gap - idiosynchratic) %>%
-      select(date, obs_name, sector, series_label, common, gap) 
+      select(date, obs_name, series_label, common, gap) 
     
     tab <- tab1 %>%
       rename(., value = idiosynchratic) %>%
       mutate(type = "idiosynchratic") %>%
-      full_join(., df, by = c("date", "obs_name", "sector", "series_label", "type", "value"))
+      full_join(., df, by = c("date", "obs_name", "series_label", "type", "value"))
     tab <- tab2 %>%
       rename(., value = common) %>%
       mutate(type = "common") %>%
-      full_join(., tab, by = c("date", "obs_name", "sector", "series_label", "type", "value"))
+      full_join(., tab, by = c("date", "obs_name", "series_label", "type", "value"))
     tab <- tab %>%
       filter(type %in% c("common", "idiosynchratic"))
     tab$type[tab$type == "common"] <- name_common
@@ -460,8 +460,9 @@ plot_time_series <- function(
                 text = element_text(size=10),
                 axis.ticks.x = element_line(),
                 panel.grid.minor.x = element_blank(),
-                panel.grid.minor.y = element_blank())  +
-          guides(fill = guide_legend(ncol = 4, title = ""))
+                panel.grid.minor.y = element_blank()) +
+          # guides(fill = guide_legend(ncol = 4, title = ""))
+          guides(fill = guide_legend(title = ""))
         if (title) p <- p + labs(title = plotl[[px]]$title)
         
         if (save) { 

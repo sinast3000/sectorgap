@@ -22,7 +22,7 @@
 #' 
 #' @details \code{data} is preferably the output of funtion \code{prepare_data}.
 #' 
-#' @return A tibble with results in long format.
+#' @return A data frame with results in long format.
 #' 
 #' @importFrom dplyr %>% left_join full_join
 #' @importFrom tidyr pivot_longer
@@ -85,8 +85,6 @@ transform_results <- function(
   state_ntrans <- fit$tsl[[paste0("state_", tolower(estimate))]]
   state_trans <- fit$tsl[[paste0("state_trans_", tolower(estimate))]]
   
-  # vars_select <- gsub("_summary", "", names(fit$tsl)[grepl("summary", names(fit$tsl))])
-  # df <- do.call(cbind, fit$tsl[vars_select[vars_select %in% names(fit$tsl)]]) %>%
   df <- state %>%
     data.frame("date" = time(.), .) %>%
     pivot_longer(-date, names_to = "series", values_to = "value") 
@@ -203,8 +201,7 @@ transform_results <- function(
   # add display names
   df$type <- gsub("\\_.*", "", df$series)
   df$obs_name <- gsub(".*\\_", "", df$series)
-  df$sector <- gsub(".*va", "", gsub(".*fte", "", df$obs_name))
-  
+
   # add group
   df <- df_set$obs %>% 
     select(variable, group, group_label, variable_label) %>%
@@ -213,7 +210,8 @@ transform_results <- function(
   
   df <- df %>% filter(!(obs_name %in% df_set$obs$variable)) %>%  
     mutate(series_label = "Residual") %>%
-    rbind(df %>% filter(obs_name %in% df_set$obs$variable), .)
+    rbind(df %>% filter(obs_name %in% df_set$obs$variable), .) %>%
+    as.data.frame
   
   return(df)
   
