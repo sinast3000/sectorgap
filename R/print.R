@@ -261,8 +261,7 @@ print.ss_fit<- function(x, call = TRUE, check = TRUE, ...) {
     function(x) sum(x > qnorm(p = 1 - alpha/length(x) / 2))
   )
   states_nconverge_idx <- states_nconverge_count > 0
-  states_nconverge <- states_geweke[, states_nconverge_idx] %>%
-    colnames %>%
+  states_nconverge <- colnames(states_geweke)[states_nconverge_idx] %>%
     gsub("\\..*", "", .) %>%
     data.frame(., states_nconverge_count[states_nconverge_idx])
   colnames(states_nconverge) <- c("state", "time points")
