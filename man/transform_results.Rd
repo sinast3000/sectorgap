@@ -36,7 +36,7 @@ default is \code{HPDIprob = 0.68}}
 used.}
 }
 \value{
-A tibble with results in long format.
+A data frame with results in long format.
 }
 \description{
 Formats the output series into a tibble in long format and
