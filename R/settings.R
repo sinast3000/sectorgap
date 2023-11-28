@@ -98,11 +98,11 @@ initialize_settings <- function(
     transform = TRUE,
     load_name = set$agg$variable,
     name_residual = NULL,
-    label = "Output",
+    label = "Production",
     variable_label = c(
-      "A: Goods-producing industries",
-      "B: Service industries",
-      "C: Government and adjustments"
+      "Prod. A: Goods-producing industries",
+      "Prod. B: Service industries",
+      "Prod. C: Government and adjustments"
     )
   )
   
@@ -128,11 +128,11 @@ initialize_settings <- function(
     ),
     load_name = "employment",
     # name_residual = "resempl",
-    label = "Employment",
+    label = "FTE employment",
     variable_label = c(
-      "A: Goods-producing industries",
-      "B: Service industries",
-      "C: Government and adjustments"
+      "FTE A: Goods-producing industries",
+      "FTE B: Service industries",
+      "FTE C: Government and adjustments"
     )
   )
   
@@ -585,20 +585,23 @@ settings_to_df <- function(x) {
       as.data.frame()
   }
   
-  # consolidate and return
-  return(
-    list(
-      obs = df_obs, 
-      loadings = df_loadings,
-      loadings_extra = df_loadings_extra,
-      variance = df_variance,
-      covariance = df_covariance,
-      AR = df_AR,
-      AR_drift = df_AR_drift,
-      const = df_const,
-      lags = df_lags,
-      constr = df_constr
-    )
+  dfl <- list(
+    obs = df_obs, 
+    loadings = df_loadings,
+    loadings_extra = df_loadings_extra,
+    variance = df_variance,
+    covariance = df_covariance,
+    AR = df_AR,
+    AR_drift = df_AR_drift,
+    const = df_const,
+    lags = df_lags,
+    constr = df_constr
   )
+  
+
+  is.settings(x = settings, dfl = dfl)
+  
+  # consolidate and return
+  return(dfl)
   
 }
