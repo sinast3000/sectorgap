@@ -6,6 +6,7 @@
 \usage{
 plot_time_series(
   df,
+  settings = settings,
   n_col = 3,
   n_sep = 5,
   highlighted_area = NULL,
@@ -21,6 +22,9 @@ plot_time_series(
 )
 }
 \arguments{
+\item{settings}{list with model setting, in the format returned by the
+function \code{initialize_settings}}
+
 \item{n_col}{number of columns for grid plots}
 
 \item{n_sep}{increments of x axis ticks in years}

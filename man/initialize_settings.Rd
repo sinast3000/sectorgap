@@ -57,10 +57,13 @@ and if aggregation constraints are present (for
 be enforced}
 \item{constr_trends}{logical indicating if constraints for the trends
 should be enforced}
-\item{prefix}{a character string by which the variables in \code{group1}
-and \code{subgroup1} should be matched}
 \item{variable_neg}{variable names that are negative and thus need to be
 subtracted when constructing weights}
+The block \code{subgroup1} additionally contain the
+following list item:
+\item{match_group1}{a character vector of the same length as
+\code{variable} indicating the matching variables in \code{group1}, in the
+same order as \code{variable}, \code{NA} indicates no match}
 }
 \description{
 Initializes settings with a basic example.

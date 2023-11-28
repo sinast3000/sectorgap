@@ -17,7 +17,8 @@ correspond to the different groups, i.e., \code{group1, group2, subgroup1},
 if present in the model}
 }
 \value{
-A state space model object returned by the function \code{SSModel} of
+A state space model object of class \code{ss_model}, which consists
+of an object returned by the function \code{SSModel} of
 the package \code{KFAS} and in addition a list item called \code{names}
 which contains information on the parameters to be estimated.
 }

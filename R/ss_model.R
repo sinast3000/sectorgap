@@ -15,7 +15,8 @@
 #' 
 #' @details \code{data} is preferably the output of funtion \code{prepare_data}.
 #' 
-#' @return A state space model object returned by the function \code{SSModel} of 
+#' @return A state space model object of class \code{ss_model}, which consists 
+#'   of an object returned by the function \code{SSModel} of 
 #'   the package \code{KFAS} and in addition a list item called \code{names} 
 #'   which contains information on the parameters to be estimated. 
 #'

@@ -599,7 +599,7 @@ settings_to_df <- function(x) {
   )
   
 
-  is.settings(x = settings, dfl = dfl)
+  is.settings(x = x, dfl = dfl)
   
   # consolidate and return
   return(dfl)

@@ -36,7 +36,7 @@ kept, and so on}
 default is \code{HPDIprob = 0.68}}
 }
 \value{
-An object of class \code{fit}.
+An object of class \code{ss_fit}.
 }
 \description{
 Estimates the parameters and states of a multi-dimensional
