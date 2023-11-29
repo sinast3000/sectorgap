@@ -17,8 +17,6 @@ print.settings <- function(x, call = TRUE, check = TRUE, ...) {
   # settings to data frames
   df_set <- settings_to_df(x = x)
   
-  y <- df_set$obs
-  
   if (call) {
     mc <- attr(x, "call")
     cat("Call:\n", paste(deparse(mc), sep = "\n", collapse = "\n"), "\n\n", sep = "")
@@ -29,8 +27,8 @@ print.settings <- function(x, call = TRUE, check = TRUE, ...) {
   ig <- "agg"
   groups <- c("agg", "group1", "group2", "subgroup1", "agggroup")
   for (ig in groups) {
-    df <- y %>% filter(group == ig)
-    set <- y[[ig]]
+    df <- df_set$obs %>% filter(group == ig)
+    set <- x[[ig]]
     cycle <- switch(
       as.character(df$cycle[1]),
       "2" = "AR(2)",
@@ -81,18 +79,18 @@ print.settings <- function(x, call = TRUE, check = TRUE, ...) {
   }
   
   # misc
-  if (length(y$misc) > 1 ) {
+  if (length(x$misc) > 1 ) {
     ig <- "misc"
     df <- df_set$obs %>% filter(group == ig)
-    set <- y[[ig]]
+    set <- x[[ig]]
     
-    cat(paste0("\n--------------- ", toupper(ig), ": ", y[[ig]]$label[1]))
+    cat(paste0("\n--------------- ", ig, ": ", x[[ig]]$label[1]))
     
     
-    for (ix in 2:length(y$misc)) {
-      variable_i <- names(y[[ig]])[ix]
+    for (ix in 2:length(x$misc)) {
+      variable_i <- names(x[[ig]])[ix]
       df <- df_set$obs %>% filter(group == ig, variable == variable_i)
-      set <- y[[ig]][[ix]]
+      set <- x[[ig]][[ix]]
       cycle <- switch(
         as.character(df$cycle[1]),
         "2" = "AR(2)",
