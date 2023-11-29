@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{plot.ss_fit}
 \alias{plot.ss_fit}
-\title{Time series plots}
+\title{Plots of results}
 \usage{
 \method{plot}{ss_fit}(
   x,
@@ -22,13 +22,15 @@
   plot_start = NULL,
   plot_end = NULL,
   alpha = 0.05,
+  include_burnin = FALSE,
   ...
 )
 }
 \arguments{
 \item{x}{object of class \code{ss_fit}}
 
-\item{plot_type}{type of plots, options are \code{"timeseries", "density"}}
+\item{plot_type}{type of plots, options are
+\code{"timeseries", "density", "trace}}
 
 \item{estimate}{character specifying the posterior estimate. Valid options
 are \code{"mean"} and \code{"median"}, the default is
@@ -76,11 +78,14 @@ number of plot rows implied by \code{n_col}}
 \item{alpha}{cut off value for posterior (only used if
 \code{plot_type = "density"})}
 
+\item{include_burnin}{logical indicating if burnin phase should be included
+(only used if \code{plot_type = "trace"})}
+
 \item{...}{ignored}
 }
 \value{
 nothing
 }
 \description{
-Creates a set of time series plots of the results.
+Creates a set of time series, density, or trace plots.
 }

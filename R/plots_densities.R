@@ -11,6 +11,7 @@
 #' @importFrom stats dnorm quantile
 #' @import ggplot2
 #' @importFrom MCMCpack dinvgamma
+#' @importFrom dplyr %>% select filter mutate group_by
 #' 
 #' @return nothing
 #' @keywords internal
@@ -130,7 +131,8 @@ plot_densities <- function(
               file_path, 
               gsub(":", "", titlel[[k1]]) %>%
                 gsub(" ", "_", .) %>%
-                paste0(., ".", device)
+                paste0(., ".", device) %>%
+                paste0("density_", .)
             )
             ggsave(
               filename = filename, 
@@ -235,7 +237,8 @@ plot_densities <- function(
         filename <- file.path(
           file_path, 
           gsub(" ", "_", titlel[[k1]]) %>%
-            paste0(., ".", device)
+            paste0(., ".", device) %>%
+            paste0("density_", .)
         )
         ggsave(
           filename = filename,
