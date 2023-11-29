@@ -36,14 +36,15 @@ is.settings <- function(x, dfl = NULL, return.logical = FALSE) {
   
   if (return.logical) {
     y <- inherits(x, "settings") &&
-      any(names(x) %in% opts$lnames) &&
-      any(dfl$obs$trend %in% opts$trend) &&
-      any(dfl$obs$cycle %in% opts$cycle) &&
-      any(dfl$obs$corr %in% opts$corr) &&
+      all(names(x) %in% opts$lnames) &&
+      all(dfl$obs$trend %in% opts$trend) &&
+      all(dfl$obs$cycle %in% opts$cycle) &&
+      all(dfl$obs$corr %in% opts$corr) &&
       !any(dfl$obs$variable %>% duplicated) &&
       !any(dfl$obs$variable_label %>% duplicated) &&
       !any(grepl("_", dfl$obs$variable)) &&
-      !any(dfl$obs %>% select(group, group_label) %>% unique %>% .$group_label %>% duplicated)
+      !any(dfl$obs %>% select(group, group_label) %>% unique %>% .$group_label %>% duplicated) &&
+      all((dfl$loadings$loads_on %>% unique) %in% dfl$obs$variable)
     y
   } else {
   
@@ -118,9 +119,23 @@ is.settings <- function(x, dfl = NULL, return.logical = FALSE) {
       name_duplicated <- labels[idx]
       stop(
         paste0(
-          "Duplicated group label",  
+          "Duplicated group label '",  
           paste0(name_duplicated, collapse = ", "), 
           "', please respecify"), 
+        call. = FALSE
+      )
+    }
+    
+    # check if loading variables are among the endo variables
+    labels <- dfl$loadings$loads_on %>% unique
+    idx <- !(labels %in% dfl$obs$variable)
+    if (any(idx)) {
+      name_duplicated <- labels[idx]
+      stop(
+        paste0(
+          "Loading variable '",  
+          paste0(name_duplicated, collapse = ", "), 
+          "' not among the observation variables, please respecify"), 
         call. = FALSE
       )
     }
