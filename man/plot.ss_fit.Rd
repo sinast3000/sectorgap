@@ -30,7 +30,7 @@
 \item{x}{object of class \code{ss_fit}}
 
 \item{plot_type}{type of plots, options are
-\code{"timeseries", "density", "trace}}
+\code{"timeseries", "density", "trace"}}
 
 \item{estimate}{character specifying the posterior estimate. Valid options
 are \code{"mean"} and \code{"median"}, the default is

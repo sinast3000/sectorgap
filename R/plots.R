@@ -5,7 +5,7 @@
 #'
 #' @param x object of class \code{ss_fit}
 #' @param plot_type type of plots, options are 
-#'   \code{"timeseries", "density", "trace}
+#'   \code{"timeseries", "density", "trace"}
 #' @param n_col number of columns for grid plots
 #' @param n_sep increments of x axis ticks in years
 #' @param file_path file path for plots
@@ -29,9 +29,10 @@
 #'   \code{plot_type = "timeseries"})
 #' @param alpha cut off value for posterior (only used if 
 #'   \code{plot_type = "density"})
-#' @param include_burnin logical indicating if burnin phase should be included
+#' @param include_burnin logical indicating if burnin phase should be included 
 #'   (only used if \code{plot_type = "trace"})
 #' @param ... ignored
+#'
 #' @inheritParams define_ssmodel
 #' @inheritParams transform_results
 #' 
