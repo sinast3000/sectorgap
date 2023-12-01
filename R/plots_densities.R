@@ -43,7 +43,7 @@ plot_densities <- function(
   
   # LOADINGS, AR ---------------------------------------------------------------
     
-  par_type <- c("loadings", "AR")
+  par_type <- c("loadings", "AR")[c(dim(df_set$loadings)[1]>0, dim(df_set$AR)[1]>0)]
   for (pt in par_type) {
     
     # sort by group

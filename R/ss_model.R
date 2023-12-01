@@ -59,7 +59,7 @@ define_ssmodel <- function(
   restr <- constr <- FALSE
   
   # select variables
-  tsl <- tsl[endo]
+  if (length(endo) > 1) tsl <- tsl[endo]
 
   # set constraints
   for (ix in rownames(df_set$constr)) {
@@ -198,6 +198,8 @@ define_ssmodel <- function(
     H = sys$Ht,
     data = tsm
   )
+  if (dim(model$Z)[1] == 1) rownames(model$Z) <- rownames(sys$Zt)
+  
   model$names <- sys$names
   class(model) <- c("ss_model", class(model))
   attr(model, "call") <- mc

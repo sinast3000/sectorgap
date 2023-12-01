@@ -103,7 +103,7 @@ prepate_data <- function(
   }
   
   # subgroup1
-  if (!is.null(settings$subgroup1$variable)) {
+  if (!is.null(settings$subgroup1)) {
     idx <- settings$subgroup1$variable
     tsl_w[["subgroup1"]] <- lapply(idx, function(x) {
       stats::lag(tsl[[x]] / tsl[[settings$subgroup1$load_name]], -1)
@@ -123,7 +123,7 @@ prepate_data <- function(
     }
   }) %>%
     do.call(cbind, .)
-  colnames(tsm) <- df_set$obs$variable
+  if (NROW(df_set$obs) > 1)  colnames(tsm) <- df_set$obs$variable
   
   # cut data window
   if (is.null(ts_start)) ts_start <- start(tsm)

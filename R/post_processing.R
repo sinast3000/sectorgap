@@ -92,6 +92,7 @@ transform_results <- function(
   df$obs_name <- gsub(".*\\_", "", df$series)
   
   # add observations level and yoy rates
+  if (NROW(df_set$obs) > 1) {
   df_obs <- 1:NROW(df_set$obs) %>%
       lapply(., function(x) {
         trans <- df_set$obs$transform[x]
@@ -103,18 +104,30 @@ transform_results <- function(
         }
     }) %>%
     do.call(cbind, .)
-  colnames(df_obs) <- df_set$obs$variable
+    colnames(df_obs) <- df_set$obs$variable
+  } else {
+    trans <- df_set$obs$transform[1]
+    if (trans) {
+      df_obs <- settings$fun_transform_inv(fit$model$y[, 1])
+    } else {
+      df_obs <- fit$model$y[, 1]
+    }
+  }
   
   df_obs_yoy <- df_obs %>%
     pct(.) %>%
     data.frame("date" = time(.), .) %>%
     pivot_longer(-date, names_to = "obs_name", values_to = "obs") 
   df_obs_yoy$type <- "drift"
+  if (NROW(df_set$obs) == 1) df_obs_yoy$obs_name <- df_set$obs$variable
+  df_obs_yoy$date <- as.numeric(df_obs_yoy$date)
   
   df_obs <- df_obs %>%
     data.frame("date" = time(.), .) %>%
     pivot_longer(-date, names_to = "obs_name", values_to = "obs") 
   df_obs$type <- "trend"
+  if (NROW(df_set$obs) == 1) df_obs$obs_name <- df_set$obs$variable
+  df_obs$date <- as.numeric(df_obs$date)
   df_obs <- rbind(df_obs, df_obs_yoy)
   
   df <- left_join(df, df_obs, by = c("date", "obs_name", "type"))

@@ -299,7 +299,7 @@ plot_time_series <- function(
   
   name_common <- "shared"
   
-  for (px in 1:length(plotl)) {
+  for (px in seq_len(length(plotl))) {
    
     tab1 <- df %>% 
       filter(type %in% "cycle", obs_name %in% plotl[[px]]$obs_name) %>%
@@ -423,8 +423,8 @@ plot_time_series <- function(
     })
   )
 
-  for (px in 1:length(plotl)) {
-
+  for (px in seq_len(length(plotl))) {
+    
     tab <- df %>% 
       filter(type %in% plotl[[px]]$type, obs_name %in% plotl[[px]]$obs_name) 
     if (NROW(tab) > 0) {

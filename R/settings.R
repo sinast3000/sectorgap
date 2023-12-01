@@ -385,51 +385,55 @@ settings_to_df <- function(x) {
       }
     }
   }
-  df_loadings <- do.call(rbind, dfl_loadings) %>%
-    left_join(., df_obs %>% select(variable, variable_label, group, group_label), by = "variable")
-  df_lags <- df_loadings %>% 
-    group_by(variable = loads_on, type) %>%
-    dplyr::summarize(max_lag = max(lag)) 
-  
-  # ----- indirect loadings
-  df_tmp1 <- df_loadings %>%
-    filter(type == "cycle") %>%
-    filter(loads_on %in% variable) 
-  
-  dfl_loadings_extra <- list()
-  df_loadings_extra <- data.frame()
-  if (NROW(df_tmp1) > 0 ) {
-    for (ix in 1:NROW(df_tmp1)) {
-      
-      dfl_loadings_extra[[ix]] <- df_loadings %>%
-        filter(type == "cycle") %>%
-        filter(df_tmp1$loads_on[ix] == variable) %>% 
-        rename(
-          parameter_name_indirect = parameter_name,
-          lag_indirect = lag
-        ) %>% 
-        select(-variable) %>% 
-        mutate(
-          variable = df_tmp1$variable[ix],
-          lag_direct = df_tmp1$lag[ix],
-          lag = lag_direct + lag_indirect,
-          parameter_name_direct = df_tmp1$parameter_name[ix],
-          loading_state = gsub("_L0", "", paste0(type, "_", loads_on, "_L", lag))
-        )
-      
-    }
-    df_loadings_extra <- do.call(rbind, dfl_loadings_extra) %>% 
-      select(-group) %>%
+  if (length(dfl_loadings) > 0) {
+    df_loadings <- do.call(rbind, dfl_loadings) %>%
       left_join(., df_obs %>% select(variable, variable_label, group, group_label), by = "variable")
-    df_lags_extra <- df_loadings_extra %>% 
+    df_lags <- df_loadings %>% 
       group_by(variable = loads_on, type) %>%
-      dplyr::summarize(max_lag_extra = max(lag)) 
+      dplyr::summarize(max_lag = max(lag)) 
     
-    df_lags <- df_lags %>%
-      full_join(.,df_lags_extra, by = c("variable", "type")) %>%
-      group_by(variable, type) %>%
-      mutate(max_lag = max(max_lag, max_lag_extra, na.rm = TRUE)) %>%
-      select(-max_lag_extra)
+    # ----- indirect loadings
+    df_tmp1 <- df_loadings %>%
+      filter(type == "cycle") %>%
+      filter(loads_on %in% variable) 
+    
+    dfl_loadings_extra <- list()
+    df_loadings_extra <- data.frame()
+    if (NROW(df_tmp1) > 0 ) {
+      for (ix in 1:NROW(df_tmp1)) {
+        
+        dfl_loadings_extra[[ix]] <- df_loadings %>%
+          filter(type == "cycle") %>%
+          filter(df_tmp1$loads_on[ix] == variable) %>% 
+          rename(
+            parameter_name_indirect = parameter_name,
+            lag_indirect = lag
+          ) %>% 
+          select(-variable) %>% 
+          mutate(
+            variable = df_tmp1$variable[ix],
+            lag_direct = df_tmp1$lag[ix],
+            lag = lag_direct + lag_indirect,
+            parameter_name_direct = df_tmp1$parameter_name[ix],
+            loading_state = gsub("_L0", "", paste0(type, "_", loads_on, "_L", lag))
+          )
+        
+      }
+      df_loadings_extra <- do.call(rbind, dfl_loadings_extra) %>% 
+        select(-group) %>%
+        left_join(., df_obs %>% select(variable, variable_label, group, group_label), by = "variable")
+      df_lags_extra <- df_loadings_extra %>% 
+        group_by(variable = loads_on, type) %>%
+        dplyr::summarize(max_lag_extra = max(lag)) 
+      
+      df_lags <- df_lags %>%
+        full_join(.,df_lags_extra, by = c("variable", "type")) %>%
+        group_by(variable, type) %>%
+        mutate(max_lag = max(max_lag, max_lag_extra, na.rm = TRUE)) %>%
+        select(-max_lag_extra)
+    }
+  } else {
+    df_loadings <- df_lags <- df_loadings_extra <- data.frame()
   }
   
   # ------ variance
@@ -548,14 +552,22 @@ settings_to_df <- function(x) {
     by = "state")
   
   # ------ lags
-  df_lags <- full_join(
-    df_lags, 
-    df_obs %>% 
-      transmute(variable = variable, max_lag_AR = cycle - 1, type = "cycle"),
-    by = c("variable", "type")
-  ) %>% dplyr::mutate(max_lag = max(max_lag, max_lag_AR, na.rm = TRUE)) %>%
-    dplyr::select(!max_lag_AR) %>%
-    ungroup
+  if (NROW(df_lags) > 0) {
+    df_lags <- full_join(
+      df_lags, 
+      df_obs %>% 
+        transmute(variable = variable, max_lag_AR = cycle - 1, type = "cycle"),
+      by = c("variable", "type")
+    ) %>% dplyr::mutate(max_lag = max(max_lag, max_lag_AR, na.rm = TRUE)) %>%
+      dplyr::select(!max_lag_AR) %>%
+      ungroup
+  } else {
+    df_lags <- df_obs %>% 
+      transmute(variable = variable, max_lag_AR = cycle - 1, type = "cycle") %>% 
+      dplyr::mutate(max_lag = max(max_lag, max_lag_AR, na.rm = TRUE)) %>%
+      dplyr::select(!max_lag_AR) %>%
+      ungroup
+  }
   
   # ------ constraints
   dfl_constr <- list()

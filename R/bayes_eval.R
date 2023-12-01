@@ -42,7 +42,7 @@ compute_mcmc_results <- function(
   list2env(x = mcmc, envir = environment())
   R_burnin <- floor(burnin * R)
   state <- state[, , (R_burnin / thin + 1):(R / thin)]
-  state_gap <- state_gap[, , (R_burnin / thin + 1):(R / thin)]
+  state_gap <- state_gap[, , (R_burnin / thin + 1):(R / thin), drop = FALSE]
   parameters <- parameters[(R_burnin / thin + 1):(R / thin), ]
   colnames(state) <-  colnames(mcmc$state)
   colnames(state_gap) <-  colnames(mcmc$state_gap)
@@ -104,7 +104,7 @@ compute_mcmc_results <- function(
   tsl_trans <- results_state(
     model = model, 
     HPDIprob = HPDIprob, 
-    state = state_trans[, idx_trend, ]
+    state = state_trans[, idx_trend, , drop = FALSE]
   )
   idx_trend_summary <- colnames(tsl$state_summary)[gsub("\\..*", "", colnames(tsl$state_summary)) %in% idx_trend_trans]
   tsl$state_trans_summary[, idx_trend_summary] <- tsl_trans$state_summary
@@ -368,10 +368,13 @@ results_state <- function(model, HPDIprob, state) {
   })
   names(tsl$state_summary) <- setdiff(colnames(state), "const")
   tsl$state_summary <- do.call(cbind, tsl$state_summary)
+  if (length(setdiff(colnames(state), "const")) == 1) {
+    colnames(tsl$state_summary) <- paste0(setdiff(colnames(state), "const"), ".", colnames(tsl$state_summary) )
+  }
   
   # retrieve mean and median
-  tsl$state_mean <- tsl$state_summary[, grepl(".Mean", colnames(tsl$state_summary))]
-  tsl$state_median <- tsl$state_summary[, grepl(".Median", colnames(tsl$state_summary))]
+  tsl$state_mean <- tsl$state_summary[, grepl(".Mean", colnames(tsl$state_summary)), drop = FALSE]
+  tsl$state_median <- tsl$state_summary[, grepl(".Median", colnames(tsl$state_summary)), drop = FALSE]
   colnames(tsl$state_mean) <- gsub(".Mean.*", "",   colnames(tsl$state_mean))
   colnames(tsl$state_median) <- gsub(".Median.*", "",   colnames(tsl$state_median))
   

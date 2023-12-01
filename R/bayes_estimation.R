@@ -203,37 +203,39 @@ estimate_ssmodel <- function(
     # step 4: all remaining observation equations ------------------------------
     # assumption: observation equations have no constant to estimate
     
-    # compute Y for all variables simultaneously
-    # substract constant and trend from observation
-    Y <- model$y[, endo] - ts(sapply(1:dim(ssmodel_k$Z)[3], function(x) {
-      ssmodel_k$Z[endo, hlp$idx$T_ncycle, x] %*% 
-        state_smoothed[x, hlp$idx$T_ncycle]
-    }) %>% t,
-      start = hlp$start, 
-      frequency = hlp$frequency
-    )
-    colnames(Y) <- endo
-
-    end.time5 <- Sys.time()
-    
-    for (x in names(hlp$step4)) {
-
-      lx <- hlp$step4[[x]]
-
-      # draw parameters
-      pars[lx$pars_regression] <- .postRegression(
-        Y = Y[, x], 
-        X = state_smoothed[, lx$Xnames], 
-        beta = pars[lx$load], 
-        betaDistr = df_prior[, lx$load, drop = FALSE], 
-        sigma = pars[lx$var_cycle],
-        sigmaDistr = df_prior[, lx$var_cycle, drop = FALSE], 
-        phi = pars[lx$phi],
-        phiDistr = df_prior[, lx$phi, drop = FALSE]
-      )[lx$pars_regression]
-
+    if (length(hlp$step4) > 0) {
+      # compute Y for all variables simultaneously
+      # substract constant and trend from observation
+      Y <- model$y[, endo] - ts(sapply(1:dim(ssmodel_k$Z)[3], function(x) {
+        ssmodel_k$Z[endo, hlp$idx$T_ncycle, x] %*% 
+          state_smoothed[x, hlp$idx$T_ncycle]
+      }) %>% t,
+        start = hlp$start, 
+        frequency = hlp$frequency
+      )
+      colnames(Y) <- endo
+  
       
+      for (x in names(hlp$step4)) {
+  
+        lx <- hlp$step4[[x]]
+  
+        # draw parameters
+        pars[lx$pars_regression] <- .postRegression(
+          Y = Y[, x], 
+          X = state_smoothed[, lx$Xnames], 
+          beta = pars[lx$load], 
+          betaDistr = df_prior[, lx$load, drop = FALSE], 
+          sigma = pars[lx$var_cycle],
+          sigmaDistr = df_prior[, lx$var_cycle, drop = FALSE], 
+          phi = pars[lx$phi],
+          phiDistr = df_prior[, lx$phi, drop = FALSE]
+        )[lx$pars_regression]
+  
+        
+      }
     }
+    end.time5 <- Sys.time()
     
     # -------------------------------------------------------------------------- 
     
@@ -330,14 +332,24 @@ compute_gaps <- function(
   # exclude all constant, trend and drift states
   X <- state[, idx_state]
   
-  # multiply Z and state vector piecewise (for each point in time)
-  gaps <- ts(
-    t(sapply(1:dim(X)[1], function(x) {
-      model$Z[idx_obs, idx_state, x] %*% X[x, ]
-    })),
-    start = start(X),
-    frequency = frequency(X)
-  )
+  if (dim(model$Z)[3] > 1) {
+    # multiply Z and state vector piecewise (for each point in time)
+    gaps <- ts(
+      t(sapply(1:dim(X)[1], function(x) {
+        model$Z[idx_obs, idx_state, x] %*% X[x, ]
+      })),
+      start = start(X),
+      frequency = frequency(X)
+    )
+  } else {
+    gaps <- ts(
+      t(
+        model$Z[idx_obs, idx_state, 1] %*% t(X)
+      ),
+      start = start(X),
+      frequency = frequency(X)
+    )  
+  }
   colnames(gaps) <- paste0("gap_", idx_obs)
   
   return(gaps)
@@ -416,6 +428,9 @@ helper_posterior_assignment <- function(
   names(hlp$step4) <- endo
   hlp$step3 <- hlp$step4[!(endo %in% df_set$loadings$variable)]
   hlp$step4 <- hlp$step4[endo %in% df_set$loadings$variable]
+  
+  # for one dimensional model
+  if (is.null(hlp$idx$Z_endo)) hlp$idx$Z_endo <- endo
 
   return(hlp)
 }
