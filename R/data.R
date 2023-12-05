@@ -56,10 +56,6 @@ prepate_data <- function(
 
   . <- NULL
   
-  ts_freq <- frequency(tsl[[settings$agg$variable]])
-  if (length(ts_start) > 1) ts_start <- ts_start  %*% c(1, 1 / ts_freq) - 1 / ts_freq
-  if (length(ts_end) > 1) ts_end <- ts_end  %*% c(1, 1 / ts_freq) - 1 / ts_freq
-  
   if (is.null(tsl_p) & is.null(tsl_n)) stop("Either 'tsl_p' or 'tsl_n' must be supplied.")
   
   # initialize
@@ -136,13 +132,16 @@ prepate_data <- function(
   # cut data window
   if (is.null(ts_start)) ts_start <- start(tsm)
   if (is.null(ts_end)) ts_end <- end(tsm)
-  tsm <- window(tsm, start = ts_start, end = ts_end, extend = TRUE)
   tsl_r <- lapply(tsl_r, window, start = ts_start, end = ts_end, extend = TRUE)
   tsl_p <- lapply(tsl_p, window, start = ts_start, end = ts_end, extend = TRUE)
   tsl_n <- lapply(tsl_n, window, start = ts_start, end = ts_end, extend = TRUE)
   tsl_w <- lapply(tsl_w, window, start = ts_start, end = ts_end, extend = TRUE)
   
   # extend weights if necessary
+  ts_freq <- frequency(tsl[[settings$agg$variable]])
+  if (length(ts_start) > 1) ts_start <- ts_start  %*% c(1, 1 / ts_freq) - 1 / ts_freq
+  if (length(ts_end) > 1) ts_end <- ts_end  %*% c(1, 1 / ts_freq) - 1 / ts_freq
+  tsm <- window(tsm, start = ts_start, end = ts_end, extend = TRUE)
   tsl_w <- lapply(tsl_w, function(x) {
     x_trim <- na.trim(x)
     x_start <- first(time(x_trim))
