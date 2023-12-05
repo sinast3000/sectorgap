@@ -48,7 +48,10 @@ transformations to the raw data and computes the necessary weights for the
 constraints.
 }
 \details{
-Either \code{tsl_n} or \code{tsl_p} must be supplied
+Either \code{tsl_n} or \code{tsl_p} must be supplied.
+
+Weights are forward/backward extended with the first/last value if
+the supplied time series do not cover the entire period.
 }
 \examples{
 data("data_ch")

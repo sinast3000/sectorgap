@@ -16,7 +16,10 @@
 #' @param ts_end end date, e.g. \code{c(2000, 2)} or \code{2000.25}
 #' @inheritParams define_ssmodel
 #' 
-#' @details Either \code{tsl_n} or \code{tsl_p} must be supplied
+#' @details Either \code{tsl_n} or \code{tsl_p} must be supplied.
+#' 
+#' @details Weights are forward/backward extended with the first/last value if 
+#'   the supplied time series do not cover the entire period.
 #' 
 #' @return A list with five components:
 #' \item{tsm}{multiple time series object with all (transformed) endogneous 
@@ -31,6 +34,7 @@
 #'   constraints, i.e., for series \code{agg, group1, group2} if applicable}
 #'   
 #' @importFrom stats window start end
+#' @importFrom dplyr %>%
 #' 
 #' @export
 #' @examples
@@ -51,6 +55,10 @@ prepate_data <- function(
 ) {
 
   . <- NULL
+  
+  ts_freq <- frequency(tsl[[settings$agg$variable]])
+  if (length(ts_start) > 1) ts_start <- ts_start  %*% c(1, 1 / ts_freq) - 1 / ts_freq
+  if (length(ts_end) > 1) ts_end <- ts_end  %*% c(1, 1 / ts_freq) - 1 / ts_freq
   
   if (is.null(tsl_p) & is.null(tsl_n)) stop("Either 'tsl_p' or 'tsl_n' must be supplied.")
   
@@ -133,6 +141,24 @@ prepate_data <- function(
   tsl_p <- lapply(tsl_p, window, start = ts_start, end = ts_end, extend = TRUE)
   tsl_n <- lapply(tsl_n, window, start = ts_start, end = ts_end, extend = TRUE)
   tsl_w <- lapply(tsl_w, window, start = ts_start, end = ts_end, extend = TRUE)
+  
+  # extend weights if necessary
+  tsl_w <- lapply(tsl_w, function(x) {
+    x_trim <- na.trim(x)
+    x_start <- first(time(x_trim))
+    x_end <- last(time(x_trim))
+    if (x_end <  ts_end) {
+      window(x, start = x_end + 1 / ts_freq) <- window(x_trim, start = x_end) %>% 
+        matrix(., ncol = (ts_end - x_end) * ts_freq, nrow = ncol(x)) %>% 
+        t
+    }
+    if (x_start >  ts_start) {
+      window(x, end = x_start - 1 / ts_freq) <- window(x_trim, end = x_start) %>% 
+        matrix(., ncol = (x_start - ts_start) * ts_freq, nrow = ncol(x)) %>% 
+        t
+    }
+    x
+  })
   
   resl <- list(
     tsm = tsm,
