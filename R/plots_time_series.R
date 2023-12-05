@@ -365,7 +365,8 @@ plot_time_series <- function(
             file_path, 
             gsub(" \\(in.*", "", paste0(plotl[[px]]$title)) %>%
               gsub(" ", "_", .) %>%
-              paste0("decomposition_", ., ".", device)
+              gsub("_decomposition", "", .) %>%
+              paste0("loading_decomposition_", ., ".", device)
           )
           ggsave(
             filename = filename,
@@ -470,6 +471,7 @@ plot_time_series <- function(
             file_path, 
             gsub(" \\(in.*", "", paste0(plotl[[px]]$title)) %>%
               gsub(" ", "_", .) %>%
+              gsub("_decomposition", "", .) %>%
               paste0("decomposition_", ., ".", device)
           )
           ggsave(
