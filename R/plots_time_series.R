@@ -462,7 +462,7 @@ plot_time_series <- function(
                 axis.ticks.x = element_line(),
                 panel.grid.minor.x = element_blank(),
                 panel.grid.minor.y = element_blank()) +
-          # guides(fill = guide_legend(ncol = 4, title = ""))
+          guides(fill = guide_legend(ncol = 4, title = "", byrow = FALSE))
           guides(fill = guide_legend(title = ""))
         if (title) p <- p + labs(title = plotl[[px]]$title)
         
