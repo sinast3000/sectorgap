@@ -158,7 +158,7 @@ plot_time_series <- function(
                 text = element_text(size=10),
                 axis.ticks.x = element_line(),
                 panel.grid.minor.x = element_blank(),
-                panel.grid.minor.y = element_blank()) 
+                panel.grid.minor.y = element_blank())  
         if (title) p <- p + labs(title = plotl[[px]]$title)
         
         if (save) {
@@ -255,7 +255,7 @@ plot_time_series <- function(
                 axis.ticks.x = element_line(),
                 panel.grid.minor.x = element_blank(),
                 panel.grid.minor.y = element_blank()) +
-          guides(color = guide_legend(ncol = n_col, title = ""))
+          guides(color = guide_legend(ncol = 4, title = ""))
         if (title) p <- p + labs(title = plotl[[px]]$title)
   
         if (save) {
