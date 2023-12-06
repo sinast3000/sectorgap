@@ -76,14 +76,26 @@ plot_time_series <- function(
       palette = "Zissou 1"
     ),
     subgroup1 = hcl.colors(
-      max(2, df_set$obs %>% filter(group %in% "group1") %>% NROW + 1), 
-      palette = "Roma"
+      max(2, df_set$obs %>% filter(group %in% "subgroup1") %>% NROW + 1), 
+      palette = "Greens"
     ),
     misc = hcl.colors(
       max(2, df_set$obs %>% filter(group %in% "misc") %>% NROW + 1), 
       palette = "Dark3"
     )
   )
+  # adjust subgroup1 colors if not all subindicators are present
+  if (!is.null(settings$subgroup1)) {
+    colors <- colorl$group1
+    names(colors) <- c(settings$group1$variable, settings$group1$name_residual)
+    # idx with matching names of group1
+    idx <- settings$subgroup1$match_group1[!is.na(settings$subgroup1$match_group1)]
+    # name color vector for assignment
+    names(colorl$subgroup1) <- c(settings$subgroup1$match_group1, settings$subgroup1$name_residual)
+    colorl$subgroup1[idx] <- colors[idx]
+    colorl$subgroup1[length(colorl$subgroup1)] <- colors[length(colors)]
+    names(colorl$subgroup1) <- NULL
+  }
   
   # ---------------------------------------------------------------------------
   # multiple plots in grid
