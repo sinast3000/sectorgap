@@ -132,8 +132,6 @@ estimate_ssmodel <- function(
     )
   )
   
-  timec <- rep(0, 6)
-  
   # loop
   message("Obtaining draws ...")
   pb <- utils::txtProgressBar(min = 0, max = R, style = 3)
@@ -144,18 +142,19 @@ estimate_ssmodel <- function(
       utils::setTxtProgressBar(pb, r)
     }
     
-    end.time1 <- Sys.time()
-    
     # step 1: states -----------------------------------------------------------
     
     # apply simulation smoothing, conditional on parameters from step r-1
-    state_smoothed <- ts(
-      simulateSSM(ssmodel_k, type = "states", nsim = 1)[,,1],
-      start = hlp$start, 
-      frequency = hlp$frequency
+    tryCatch({
+      state_smoothed <- ts(
+        simulateSSM(ssmodel_k, type = "states", nsim = 1)[,,1],
+        start = hlp$start, 
+        frequency = hlp$frequency
+      )},
+      error = function(cont) {
+        warning("Simulation smoother problem, skipping draw.")
+      }
     )
-    
-    end.time2 <- Sys.time()
     
     # step 2: trends -----------------------------------------------------------
     pars[hlp$step2$names] <- draw_trend_innovations(
@@ -165,8 +164,6 @@ estimate_ssmodel <- function(
       df_cov = hlp$step2$covariance,
       df_prior = df_prior
     )[hlp$step2$names]
-    
-    end.time3 <- Sys.time()
     
     # AR drift
     for (x in seq_len(length(hlp$step2AR))) {
@@ -198,8 +195,6 @@ estimate_ssmodel <- function(
       )[lx$pars_regression]
     }
       
-    end.time4 <- Sys.time()
-    
     # step 4: all remaining observation equations ------------------------------
     # assumption: observation equations have no constant to estimate
     
@@ -235,11 +230,8 @@ estimate_ssmodel <- function(
         
       }
     }
-    end.time5 <- Sys.time()
     
     # -------------------------------------------------------------------------- 
-    
-    end.time6 <- Sys.time()
     
     # save draws and thin
     if (r %% thin == 0) {
@@ -264,18 +256,6 @@ estimate_ssmodel <- function(
       model = model, 
       settings = settings,
       df_set = df_set
-    )
-    
-    end.time7 <- Sys.time()
-    # 
-    # 
-    timec <- timec + c(
-      end.time2 - end.time1,
-      end.time3 - end.time2, 
-      end.time4 - end.time3,
-      end.time5 - end.time4, 
-      end.time6 - end.time5, 
-      end.time7 - end.time6
     )
     
   }
