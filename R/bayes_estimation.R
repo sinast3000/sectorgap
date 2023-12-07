@@ -274,13 +274,28 @@ estimate_ssmodel <- function(
     thin = thin
   )
   
-  # obtain results
-  fit <- compute_mcmc_results(
+  resl <- list(
     model = model,
     settings = settings, 
     HPDIprob = HPDIprob, 
     mcmc = mcmc
-  ) 
+  )
+  # obtain results
+  tryCatch({
+    fit <- do.call(
+      compute_mcmc_results, 
+      resl
+    )},
+    error = function(cont) {
+      fit <- resl
+      warning(
+        "MCMC evalutaion problem, returning object without MCMC evaluation.",
+        immediate. = TRUE
+      )
+    }
+  )
+  
+
   attr(fit, "call") <- mc
   
   return(fit)
