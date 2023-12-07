@@ -262,8 +262,6 @@ estimate_ssmodel <- function(
   close(pb)
   message("Done.")
 
-  print(paste0(round(as.numeric(timec) / sum(as.numeric(timec)) * 100, 1), sep = ", "))
-  
   # save data including burnin phase
   colnames(state) <- colnames(state_smoothed)
   mcmc <- list(
