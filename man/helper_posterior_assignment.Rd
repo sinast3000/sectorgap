@@ -7,7 +7,7 @@
 helper_posterior_assignment(model, df_set, prior, endo)
 }
 \arguments{
-\item{model}{state space model object}
+\item{model}{state space model object (unassigned)}
 
 \item{df_set}{data frame with model settings}
 

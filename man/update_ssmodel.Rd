@@ -4,12 +4,14 @@
 \alias{update_ssmodel}
 \title{State space model update}
 \usage{
-update_ssmodel(pars, model, settings, df_set)
+update_ssmodel(pars, model, model_last, settings, df_set)
 }
 \arguments{
 \item{pars}{named vector with all parameters}
 
-\item{model}{state space model object}
+\item{model}{state space model object (unassigned)}
+
+\item{model_last}{state space model object (previous draw)}
 
 \item{settings}{list with model setting, in the format returned by the
 function \code{initialize_settings}}

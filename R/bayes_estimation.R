@@ -253,7 +253,8 @@ estimate_ssmodel <- function(
     # update model
     ssmodel_k <- update_ssmodel(
       pars = pars, 
-      model = model, 
+      model = model,
+      model_last = ssmodel_k, 
       settings = settings,
       df_set = df_set
     )
@@ -281,21 +282,16 @@ estimate_ssmodel <- function(
     mcmc = mcmc
   )
   # obtain results
-  tryCatch({
-    fit <- do.call(
+  fit <- tryCatch({
+    do.call(
       compute_mcmc_results, 
       resl
     )},
     error = function(cont) {
-      fit <- resl
-      warning(
-        "MCMC evalutaion problem, returning object without MCMC evaluation.",
-        immediate. = TRUE
-      )
+      message("MCMC evalutaion problem, returning object without MCMC evaluation.")
+      return(resl)
     }
   )
-  
-
   attr(fit, "call") <- mc
   
   return(fit)

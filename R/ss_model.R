@@ -216,7 +216,8 @@ define_ssmodel <- function(
 #' @description Updates the system matrices of a state space model.
 #'
 #' @param pars named vector with all parameters
-#' @param model state space model object
+#' @param model state space model object (unassigned)
+#' @param model_last state space model object (previous draw)
 #' @param df_set data frame with model settings
 #' @inherit define_ssmodel
 #' 
@@ -225,6 +226,7 @@ define_ssmodel <- function(
 update_ssmodel <- function(
   pars, 
   model, 
+  model_last,
   settings,
   df_set
 ) {
@@ -320,7 +322,9 @@ update_ssmodel <- function(
         n_idx
       )},
       error = function(cont) {
-        stop("The stationary part of the model is close to being non-stationary, please respecify.")
+        model$P1[idx, idx] <- model_last$P1[idx, idx]
+        # stop("The stationary part of the model is close to being non-stationary, please respecify.")
+        warning(paste0("Stationarity problem when updating P1 for variable'", name , "', reusing values of last draw of P1."))
       }
     )
   }
