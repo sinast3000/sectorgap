@@ -11,7 +11,8 @@ estimate_ssmodel(
   R = 10000,
   burnin = 0.5,
   thin = 1,
-  HPDIprob = 0.68
+  HPDIprob = 0.68,
+  fit = NULL
 )
 }
 \arguments{
@@ -34,6 +35,9 @@ kept, and so on}
 
 \item{HPDIprob}{probability of highest posterior density interval, the
 default is \code{HPDIprob = 0.68}}
+
+\item{fit}{already fitted object of class \code{ss_fit}, to continue drawing,
+see details}
 }
 \value{
 An object of class \code{ss_fit}.
@@ -41,6 +45,11 @@ An object of class \code{ss_fit}.
 \description{
 Estimates the parameters and states of a multi-dimensional
 state space model by Bayesian methods using a Gibbs sampling procedure.
+}
+\details{
+If \code{fit} is supplied, the function will continue drawing
+\code{R} additional repetitions. In this case, all input variables except
+for \code{fit} and \code{R} are ignored.
 }
 \examples{
 data("data_ch")

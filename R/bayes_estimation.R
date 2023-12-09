@@ -14,10 +14,16 @@
 #' @param R number of draws, the default is \code{10000}
 #' @param burnin share of draws as burnin period, the default is \code{0.5}
 #' @param thin thinning parameter defining how many draws are discarded. 
-#'  \code{1} means no draw is discarded, \code{2} means each second draw is 
-#'  kept, and so on
+#'   \code{1} means no draw is discarded, \code{2} means each second draw is 
+#'   kept, and so on
 #' @param HPDIprob probability of highest posterior density interval, the 
 #'  default is \code{HPDIprob = 0.68}
+#' @param fit already fitted object of class \code{ss_fit}, to continue drawing, 
+#'   see details
+#'
+#' @details If \code{fit} is supplied, the function will continue drawing 
+#'   \code{R} additional repetitions. In this case, all input variables except 
+#'   for \code{fit} and \code{R} are ignored.
 #'
 #' @return An object of class \code{ss_fit}.
 #'
@@ -58,7 +64,8 @@ estimate_ssmodel <- function(
   R = 10000, 
   burnin = 0.5, 
   thin = 1, 
-  HPDIprob = 0.68
+  HPDIprob = 0.68,
+  fit = NULL
 ){
   
   # save call
@@ -66,6 +73,17 @@ estimate_ssmodel <- function(
   
   # to avoid RMD check note
   variable <- parameter_name <- distribution <- NULL
+  
+  # fitted object present (continue drawing)
+  if (!is.null(fit)) {
+    message("Continue drawing for fitted object.")
+    model <- fit$model
+    settings <- fit$settings
+    prior <- fit$prior
+    burnin <- attr(fit, "burnin")
+    thin <- attr(fit, "thin")
+    HPDIprob <- attr(fit, "HPDIprob")
+  }
   
   # settings to data frames (for ssm parameter assignment)
   df_set <- settings_to_df(x = settings)
@@ -105,6 +123,7 @@ estimate_ssmodel <- function(
   k <- dim(model$T)[1]
   
   # initialize
+  if (!is.null(fit)) pars <- fit$mcmc$parameters[dim(fit$mcmc$parameters)[1], ]
   ssmodel_k <- update_ssmodel(
     pars = pars, 
     model = model, 
@@ -127,8 +146,8 @@ estimate_ssmodel <- function(
   message(
     paste0(
       "Bayesian Estimation\n",
-      "\tNumber of draws \t\t", R, "\n",
-      "\tSkipped draws\t", thin - 1, "/", thin
+      "\tNumber of draws \t", R, "\n",
+      "\tSkipped draws\t\t", thin - 1, "/", thin
     )
   )
   
@@ -262,18 +281,38 @@ estimate_ssmodel <- function(
   }
   close(pb)
   message("Done.")
-
+  
   # save data including burnin phase
   colnames(state) <- colnames(state_smoothed)
-  mcmc <- list(
-    state = state,
-    parameters = param,
-    state_gap = state_gap,
-    prior = prior,
-    R = R, 
-    burnin = burnin, 
-    thin = thin
-  )
+  if (!is.null(fit)) {
+    mcmc <- list(
+      state = array(
+        c(fit$mcmc$state, state), 
+        dim = c(dim(state) + c(0, 0, dim(fit$mcmc$state)[3])),
+        dimnames = list(NULL, colnames(state))
+      ),
+      parameters = rbind(fit$mcmc$parameters, param),
+      state_gap = array(
+        c(fit$mcmc$state_gap, state_gap), 
+        dim = c(dim(state_gap) + c(0, 0, dim(fit$mcmc$state_gap)[3])),
+        dimnames = list(NULL, colnames(state_gap))
+      ),
+      prior = prior,
+      R = R + attr(fit, "R"), 
+      burnin = burnin, 
+      thin = thin
+    )
+  } else {
+    mcmc <- list(
+      state = state,
+      parameters = param,
+      state_gap = state_gap,
+      prior = prior,
+      R = R, 
+      burnin = burnin, 
+      thin = thin
+    )
+  }
   
   resl <- list(
     model = model,
