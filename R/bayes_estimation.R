@@ -164,14 +164,15 @@ estimate_ssmodel <- function(
     # step 1: states -----------------------------------------------------------
     
     # apply simulation smoothing, conditional on parameters from step r-1
-    tryCatch({
-      state_smoothed <- ts(
+    state_smoothed <- tryCatch({
+      ts(
         simulateSSM(ssmodel_k, type = "states", nsim = 1)[,,1],
         start = hlp$start, 
         frequency = hlp$frequency
       )},
       error = function(cont) {
         warning("Simulation smoother problem, skipping draw.")
+        return(state_smoothed)
       }
     )
     

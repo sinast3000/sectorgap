@@ -311,8 +311,8 @@ update_ssmodel <- function(
 
     idx <- pars_info$stationary[grepl(name, pars_info$stationary)]
     n_idx <- length(idx)
-    tryCatch({
-      model$P1[idx, idx] <- matrix(
+    model$P1[idx, idx] <- tryCatch({
+      matrix(
         solve(
           diag(n_idx^2) - as.matrix(kronecker(
             model$T[idx, idx, 1], model$T[idx, idx, 1])
@@ -322,9 +322,9 @@ update_ssmodel <- function(
         n_idx
       )},
       error = function(cont) {
-        model$P1[idx, idx] <- model_last$P1[idx, idx]
         # stop("The stationary part of the model is close to being non-stationary, please respecify.")
         warning(paste0("Stationarity problem when updating P1 for variable'", name , "', reusing values of last draw of P1."))
+        return(model_last$P1[idx, idx])
       }
     )
   }
