@@ -6,23 +6,25 @@
 #'
 #' @inheritParams estimate_ssmodel
 #' @inheritParams define_ssmodel
+#' @param HPDIprob probability of highest posterior density interval, optional 
+#'  if \code{fit} is supplied 
 #' @param mcmc list with draws of parameters and states (including burnin phase)
-#' @param fit An object of class \code{fit} (returned by the function 
+#' @param fit (optional) an object of class \code{fit} (returned by the function 
 #'   \code{estimate_ssmodel} and this function).
 #' @param ... additional arguments (in case \code{fit} is supplied)
 #' 
 #' @details If \code{fit} is supplied, the arguments 
 #'   \code{model, settings, mcmc} will be taken from this object.
 #'  
-#' @return An object of class \code{fit}.  
+#' @return An object of class \code{ss_fit}.  
 #'  
 #' @export
 #'
 compute_mcmc_results <- function(
-  HPDIprob = 0.68, 
   model,
   settings, 
   mcmc,
+  HPDIprob = NULL, 
   fit = NULL,
   ...
 ){
@@ -31,7 +33,12 @@ compute_mcmc_results <- function(
   burnin <- R <- thin <- . <- prior <- NULL
   
   # unload object fit if supplied
-  if (!is.null(fit))  list2env(x = fit, envir = environment())
+  if (!is.null(fit))  {
+    HPDIprob_new <- NULL
+    if (!is.null(HPDIprob)) HPDIprob_new <- HPDIprob
+    list2env(x = fit, envir = environment())
+    if (!is.null(HPDIprob_new)) HPDIprob <- HPDIprob_new
+  }
   
   # settings to data frames (for ssm parameter assignment)
   df_set <- settings_to_df(x = settings)
@@ -312,7 +319,7 @@ mcmc_summary <- function(x, HPDIprob, frac1 = 0.1, frac2 = 0.5) {
       # naive standard errors
       seNaive[j] <- sqrt(var(x[, j]) / length(x[, j]))
       # spectral densities standard errors
-      seTs[j] <- sqrt(spec.ar(x = x[, j], plot = FALSE)$spec[1] / length(x[, j]))
+      try({seTs[j] <- sqrt(spec.ar(x = x[, j], plot = FALSE)$spec[1] / length(x[, j]))}, silent = TRUE)
       # HPDI
       hpd[j, ] <- hpd_interval(x[, j], prob = HPDIprob)
       # Geweke test

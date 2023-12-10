@@ -4,12 +4,9 @@
 \alias{compute_mcmc_results}
 \title{Results for sampled parameters and states}
 \usage{
-compute_mcmc_results(HPDIprob = 0.68, model, settings, mcmc, fit = NULL, ...)
+compute_mcmc_results(model, settings, mcmc, HPDIprob = NULL, fit = NULL, ...)
 }
 \arguments{
-\item{HPDIprob}{probability of highest posterior density interval, the
-default is \code{HPDIprob = 0.68}}
-
 \item{model}{state space model object, returned by the function
 \code{define_ssmodel}}
 
@@ -18,13 +15,16 @@ function \code{initialize_settings}}
 
 \item{mcmc}{list with draws of parameters and states (including burnin phase)}
 
-\item{fit}{An object of class \code{fit} (returned by the function
+\item{HPDIprob}{probability of highest posterior density interval, optional
+if \code{fit} is supplied}
+
+\item{fit}{(optional) an object of class \code{fit} (returned by the function
 \code{estimate_ssmodel} and this function).}
 
 \item{...}{additional arguments (in case \code{fit} is supplied)}
 }
 \value{
-An object of class \code{fit}.
+An object of class \code{ss_fit}.
 }
 \description{
 Computes estimation results for the MCMC sampling output for a
