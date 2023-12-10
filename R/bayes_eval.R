@@ -233,23 +233,25 @@ geweke_test <- function(x, frac1 = 0.1, frac2 = 0.5, alpha = 0.05) {
       x1 <- window(x[, j], start = x1start, end = x1end)
       x2 <- window(x[, j], start = x2start, end = x2end)
       
-      if ((var(x1) != 0) & (var(x2) != 0)) {
-        
-        # means
-        m1 <- mean(x1)
-        m2 <- mean(x2)
-        
-        # spectral densities
-        sd1 <- spec.ar(x = x1, plot = FALSE)$spec[1]
-        sd2 <- spec.ar(x = x2, plot = FALSE)$spec[1]
-        
-        # convergence diagnostic
-        CD[j] <- (m1 - m2) / sqrt(sd1 / length(x1) + sd2 / length(x2))
-        
-        # p-value and test decision
-        pvalue[j] <- 2 * (1 - pnorm(abs(CD[j])))
-        h[j] <- 0 + (pvalue[j] < alpha)
-      }
+      try({
+        if ((var(x1) != 0) & (var(x2) != 0)) {
+          
+          # means
+          m1 <- mean(x1)
+          m2 <- mean(x2)
+          
+          # spectral densities
+          sd1 <- spec.ar(x = x1, plot = FALSE)$spec[1]
+          sd2 <- spec.ar(x = x2, plot = FALSE)$spec[1]
+          
+          # convergence diagnostic
+          CD[j] <- (m1 - m2) / sqrt(sd1 / length(x1) + sd2 / length(x2))
+          
+          # p-value and test decision
+          pvalue[j] <- 2 * (1 - pnorm(abs(CD[j])))
+          h[j] <- 0 + (pvalue[j] < alpha)
+        }
+      }, silent = TRUE)
     }
   }
   
