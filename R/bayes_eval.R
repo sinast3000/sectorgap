@@ -37,7 +37,11 @@ compute_mcmc_results <- function(
     HPDIprob_new <- NULL
     if (!is.null(HPDIprob)) HPDIprob_new <- HPDIprob
     list2env(x = fit, envir = environment())
+    if (is.null(HPDIprob)) HPDIprob <- attr(fit, "HPDIprob")
     if (!is.null(HPDIprob_new)) HPDIprob <- HPDIprob_new
+  }
+  if (is.null(HPDIprob)) {
+    stop("HPDIprob not supplied")
   }
   
   # settings to data frames (for ssm parameter assignment)
@@ -233,25 +237,31 @@ geweke_test <- function(x, frac1 = 0.1, frac2 = 0.5, alpha = 0.05) {
       x1 <- window(x[, j], start = x1start, end = x1end)
       x2 <- window(x[, j], start = x2start, end = x2end)
       
-      try({
-        if ((var(x1) != 0) & (var(x2) != 0)) {
-          
-          # means
-          m1 <- mean(x1)
-          m2 <- mean(x2)
-          
-          # spectral densities
-          sd1 <- spec.ar(x = x1, plot = FALSE)$spec[1]
-          sd2 <- spec.ar(x = x2, plot = FALSE)$spec[1]
-          
-          # convergence diagnostic
-          CD[j] <- (m1 - m2) / sqrt(sd1 / length(x1) + sd2 / length(x2))
-          
-          # p-value and test decision
-          pvalue[j] <- 2 * (1 - pnorm(abs(CD[j])))
-          h[j] <- 0 + (pvalue[j] < alpha)
-        }
-      }, silent = TRUE)
+      
+      if ((var(x1) != 0) & (var(x2) != 0)) {
+        
+        # means
+        m1 <- mean(x1)
+        m2 <- mean(x2)
+        
+        # spectral densities
+        sd1 <- tryCatch({spec.ar(x = x1, plot = FALSE)$spec[1]}, error = function(e) return(NA))
+        sd2 <- tryCatch({
+          spec.ar(x = x2, plot = FALSE)$spec[1]
+          }, 
+          error = function(e) {
+            message("yo")
+            return(NA)
+          })
+        
+        # convergence diagnostic
+        CD[j] <- (m1 - m2) / sqrt(sd1 / length(x1) + sd2 / length(x2))
+        
+        # p-value and test decision
+        pvalue[j] <- 2 * (1 - pnorm(abs(CD[j])))
+        h[j] <- 0 + (pvalue[j] < alpha)
+      }
+      
     }
   }
   
@@ -315,18 +325,19 @@ mcmc_summary <- function(x, HPDIprob, frac1 = 0.1, frac2 = 0.5) {
     m[j] <- mean(x[, j])
     # median
     md[j] <- median(x[, j])
-    if (var(x[, j]) != 0) {
+    # if (var(x[, j]) != 0) {
+    try({
       # standard deviation
       sd[j] <- sqrt(var(x[, j]))
       # naive standard errors
       seNaive[j] <- sqrt(var(x[, j]) / length(x[, j]))
       # spectral densities standard errors
-      try({seTs[j] <- sqrt(spec.ar(x = x[, j], plot = FALSE)$spec[1] / length(x[, j]))}, silent = TRUE)
+      seTs[j] <- sqrt(spec.ar(x = x[, j], plot = FALSE)$spec[1] / length(x[, j]))
       # HPDI
       hpd[j, ] <- hpd_interval(x[, j], prob = HPDIprob)
       # Geweke test
       tGeweke[j] <- geweke_test(x[, j], frac1 = frac1, frac2 = frac2)$CD
-    }
+    }, silent = TRUE)
   }
   
   # prepare results

@@ -124,12 +124,18 @@ estimate_ssmodel <- function(
   
   # initialize
   if (!is.null(fit)) pars <- fit$mcmc$parameters[dim(fit$mcmc$parameters)[1], ]
-  ssmodel_k <- update_ssmodel(
-    pars = pars, 
-    model = model, 
-    settings = settings,
-    df_set = df_set
+  tryCatch({
+    ssmodel_k <- update_ssmodel(
+      pars = pars, 
+      model = model,
+      settings = settings,
+      df_set = df_set
+    )},
+    error = function(cont) {
+      stop("State space update problem, check model and prior.")
+    }
   )
+  
   
   # ----- Gibbs procedure
   
@@ -154,7 +160,10 @@ estimate_ssmodel <- function(
   # loop
   message("Obtaining draws ...")
   pb <- utils::txtProgressBar(min = 0, max = R, style = 3)
-  for (r in 1:R) {
+  # for (r in 1:R) {
+  r <- 0
+  while(count < R / thin) {
+    r <- r + 1
     
     # update progress bar
     if (r %% ceiling(R/100) == 0) {
@@ -172,6 +181,7 @@ estimate_ssmodel <- function(
       )},
       error = function(cont) {
         warning("Simulation smoother problem, skipping draw.")
+        r <<- r - 1
         return(state_smoothed)
       }
     )
@@ -271,12 +281,19 @@ estimate_ssmodel <- function(
     
     
     # update model
-    ssmodel_k <- update_ssmodel(
-      pars = pars, 
-      model = model,
-      model_last = ssmodel_k, 
-      settings = settings,
-      df_set = df_set
+    ssmodel_k <- tryCatch({
+      update_ssmodel(
+        pars = pars, 
+        model = model,
+        model_last = ssmodel_k, 
+        settings = settings,
+        df_set = df_set
+      )},
+      error = function(cont) {
+        warning("State space update problem, skipping draw.")
+        r <<- r - 1
+        return(ssmodel_k)
+      }
     )
     
   }
@@ -318,8 +335,9 @@ estimate_ssmodel <- function(
   resl <- list(
     model = model,
     settings = settings, 
-    HPDIprob = HPDIprob, 
-    mcmc = mcmc
+    HPDIprob = HPDIprob,
+    mcmc = mcmc,
+    prior = prior
   )
   # obtain results
   fit <- tryCatch({
@@ -333,6 +351,7 @@ estimate_ssmodel <- function(
     }
   )
   attr(fit, "call") <- mc
+  
   
   return(fit)
 }
