@@ -325,19 +325,18 @@ mcmc_summary <- function(x, HPDIprob, frac1 = 0.1, frac2 = 0.5) {
     m[j] <- mean(x[, j])
     # median
     md[j] <- median(x[, j])
-    # if (var(x[, j]) != 0) {
-    try({
-      # standard deviation
-      sd[j] <- sqrt(var(x[, j]))
-      # naive standard errors
-      seNaive[j] <- sqrt(var(x[, j]) / length(x[, j]))
-      # spectral densities standard errors
-      seTs[j] <- sqrt(spec.ar(x = x[, j], plot = FALSE)$spec[1] / length(x[, j]))
-      # HPDI
-      hpd[j, ] <- hpd_interval(x[, j], prob = HPDIprob)
-      # Geweke test
-      tGeweke[j] <- geweke_test(x[, j], frac1 = frac1, frac2 = frac2)$CD
-    }, silent = TRUE)
+
+    # standard deviation
+    try({sd[j] <- sqrt(var(x[, j]))}, silent = TRUE)
+    # naive standard errors
+    try({seNaive[j] <- sqrt(var(x[, j]) / length(x[, j]))}, silent = TRUE)
+    # spectral densities standard errors
+    try({seTs[j] <- sqrt(spec.ar(x = x[, j], plot = FALSE)$spec[1] / length(x[, j]))}, silent = TRUE)
+    # HPDI
+    try({hpd[j, ] <- hpd_interval(x[, j], prob = HPDIprob)}, silent = TRUE)
+    # Geweke test
+    try({tGeweke[j] <- geweke_test(x[, j], frac1 = frac1, frac2 = frac2)$CD}, silent = TRUE)
+    
   }
   
   # prepare results
