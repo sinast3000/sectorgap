@@ -156,11 +156,7 @@ define_ssmodel <- function(
     }
         
     if (df$residual) {
-      ts_residual <- diff(tsl[[df$load_name]]) - Reduce("+", as.list(diff(tsm[, settings[[df$group]]$variable]) * weightl[[df$group]][, !idx_residual]))
-      ts_residual <- hpfilter(ts_residual, lambda = 1600)
-      # TODO: consider transformation functions
-      sys$Zt[paste0("constr_", df$type, "_", df$group), "const", ] <- c(NA, ts_residual)
-      
+      sys$Zt[paste0("constr_", df$type, "_", df$group), "const", ] <- weightl[[df$group]][, idx_residual]
     }
     
   }
@@ -340,4 +336,3 @@ update_ssmodel <- function(
   return(model)
   
 }
-

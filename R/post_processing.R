@@ -183,14 +183,14 @@ transform_results <- function(
       )
       # drifts
       tsm_weights <- tsl_w[[ig]]
-      tsm_drift_contr <- tsm_weights * state_ntrans[, paste0("drift_", series[-1])]
+      tsm_drift_contr <- tsm_weights[, series[-1]] * state_ntrans[, paste0("drift_", series[-1])]
       tsm_drift_contr <- cbind(
         state_ntrans[, paste0("drift_", series[1])] - Reduce("+", as.list(tsm_drift_contr)),
         tsm_drift_contr
       )
       colnames(tsm_drift_contr) <- paste0("drift_", c(paste0("error", ig), series[-1]))
       # trend
-      tsm_trend_contr <- tsm_weights * diff(state_ntrans[, paste0("trend_", series[-1] )])
+      tsm_trend_contr <- tsm_weights[, series[-1]] * diff(state_ntrans[, paste0("trend_", series[-1] )])
       tsm_trend_contr <- cbind(
         diff(state_ntrans[, paste0("trend_", series[1])]) - Reduce("+", as.list(tsm_trend_contr)),
         tsm_trend_contr

@@ -129,6 +129,24 @@ prepate_data <- function(
     do.call(cbind, .)
   if (NROW(df_set$obs) > 1)  colnames(tsm) <- df_set$obs$variable
   
+  # add residual for conatraints if necessary
+  for (ig in c("group1", "group2")) {
+    if (!is.null(settings[[ig]]$name_residual)) {
+      ts_residual <- diff(tsm[,settings$agg$variable]) - Reduce("+", as.list(diff(tsm[, settings[[ig]]$variable]) * tsl_w[[ig]]))
+      ts_residual <- hpfilter(ts_residual %>% na.trim, lambda = 1600)
+      tsl_w[[ig]] <- cbind(tsl_w[[ig]], ts_residual)
+      colnames( tsl_w[[ig]]) <- c(settings[[ig]]$variable, settings[[ig]]$name_residual)
+    }
+  }
+  for (ig in c("subgroup1")) {
+    if (!is.null(settings[[ig]]$name_residual)) {
+      ts_residual <- diff(tsm[,settings[[ig]]$load_name]) - Reduce("+", as.list(diff(tsm[, settings[[ig]]$variable]) * tsl_w[[ig]]))
+      ts_residual <- hpfilter(ts_residual %>% na.trim, lambda = 1600)
+      tsl_w[[ig]] <- cbind(tsl_w[[ig]], ts_residual)
+      colnames( tsl_w[[ig]]) <- c(settings[[ig]]$variable, settings[[ig]]$name_residual)
+    }
+  }
+  
   # cut data window
   if (is.null(ts_start)) ts_start <- start(tsm)
   if (is.null(ts_end)) ts_end <- end(tsm)
@@ -147,13 +165,13 @@ prepate_data <- function(
     x_start <- first(time(x_trim))
     x_end <- last(time(x_trim))
     if (x_end <  ts_end) {
-      window(x, start = x_end + 1 / ts_freq) <- window(x_trim, start = x_end) %>% 
-        matrix(., ncol = (ts_end - x_end) * ts_freq, nrow = ncol(x)) %>% 
+      window(x, start = x_end + 1 / ts_freq) <- window(x_trim, start = x_end) %>%
+        matrix(., ncol = (ts_end - x_end) * ts_freq, nrow = ncol(x)) %>%
         t
     }
     if (x_start >  ts_start) {
-      window(x, end = x_start - 1 / ts_freq) <- window(x_trim, end = x_start) %>% 
-        matrix(., ncol = (x_start - ts_start) * ts_freq, nrow = ncol(x)) %>% 
+      window(x, end = x_start - 1 / ts_freq) <- window(x_trim, end = x_start) %>%
+        matrix(., ncol = (x_start - ts_start) * ts_freq, nrow = ncol(x)) %>%
         t
     }
     x
