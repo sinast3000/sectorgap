@@ -260,9 +260,10 @@ add_init_mat <- function(sys) {
   indexRoot <- sys$names$root
   
   # assign
-  sys$a1[grepl("const", rownames(sys$a1)), ] <- 1
+  idx_const <- rownames(sys$a1) == "const"
+  sys$a1[idx_const, ] <- 1
   diag(sys$P1[indexStat, indexStat]) <- NA
-  sys$P1[grepl("const", rownames(sys$a1)), grepl("const", rownames(sys$a1))] <- 0
+  sys$P1[idx_const, idx_const] <- 0
   if (k > 1) {
     diag(sys$P1inf[indexRoot, indexRoot]) <- 1
   } else {
