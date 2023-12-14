@@ -156,7 +156,11 @@ define_ssmodel <- function(
     }
         
     if (df$residual) {
-      sys$Zt[paste0("constr_", df$type, "_", df$group), "const", ] <- weightl[[df$group]][, idx_residual]
+      if (df$type == "trend") {
+        sys$Zt[paste0("constr_", df$type, "_", df$group), "const", 2:dim(sys$Zt)[3]] <- diff(weightl[[df$group]][, idx_residual])
+      } else {
+        sys$Zt[paste0("constr_", df$type, "_", df$group), "const", ] <- weightl[[df$group]][, idx_residual]
+      }
     }
     
   }
