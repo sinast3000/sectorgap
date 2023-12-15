@@ -14,6 +14,8 @@
 #' @param tsl time series list with all untransformed endogenous series
 #' @param ts_start start date, e.g. \code{c(2000, 2)} or \code{2000.25}
 #' @param ts_end end date, e.g. \code{c(2000, 2)} or \code{2000.25}
+#' @param extend_weights logical indicating if missing weights at beginning/end 
+#'   of sample should be filled with the last/first available value
 #' @inheritParams define_ssmodel
 #' 
 #' @details Either \code{tsl_n} or \code{tsl_p} must be supplied.
@@ -51,7 +53,8 @@ prepate_data <- function(
   tsl_n = NULL, 
   tsl_p = NULL,
   ts_start = NULL,
-  ts_end = NULL
+  ts_end = NULL,
+  extend_weights = FALSE
 ) {
 
   . <- NULL
@@ -156,26 +159,28 @@ prepate_data <- function(
   tsl_w <- lapply(tsl_w, window, start = ts_start, end = ts_end, extend = TRUE)
   
   # extend weights if necessary
-  ts_freq <- frequency(tsl[[settings$agg$variable]])
-  if (length(ts_start) > 1) ts_start <- ts_start  %*% c(1, 1 / ts_freq) - 1 / ts_freq
-  if (length(ts_end) > 1) ts_end <- ts_end  %*% c(1, 1 / ts_freq) - 1 / ts_freq
-  tsm <- window(tsm, start = ts_start, end = ts_end, extend = TRUE)
-  tsl_w <- lapply(tsl_w, function(x) {
-    x_trim <- na.trim(x)
-    x_start <- first(time(x_trim))
-    x_end <- last(time(x_trim))
-    if (x_end <  ts_end) {
-      window(x, start = x_end + 1 / ts_freq) <- window(x_trim, start = x_end) %>%
-        matrix(., ncol = (ts_end - x_end) * ts_freq, nrow = ncol(x)) %>%
-        t
-    }
-    if (x_start >  ts_start) {
-      window(x, end = x_start - 1 / ts_freq) <- window(x_trim, end = x_start) %>%
-        matrix(., ncol = (x_start - ts_start) * ts_freq, nrow = ncol(x)) %>%
-        t
-    }
-    x
-  })
+  if (extend_weights) {
+    ts_freq <- frequency(tsl[[settings$agg$variable]])
+    if (length(ts_start) > 1) ts_start <- ts_start  %*% c(1, 1 / ts_freq) - 1 / ts_freq
+    if (length(ts_end) > 1) ts_end <- ts_end  %*% c(1, 1 / ts_freq) - 1 / ts_freq
+    tsm <- window(tsm, start = ts_start, end = ts_end, extend = TRUE)
+    tsl_w <- lapply(tsl_w, function(x) {
+      x_trim <- na.trim(x)
+      x_start <- first(time(x_trim))
+      x_end <- last(time(x_trim))
+      if (x_end <  ts_end) {
+        window(x, start = x_end + 1 / ts_freq) <- window(x_trim, start = x_end) %>%
+          matrix(., ncol = (ts_end - x_end) * ts_freq, nrow = ncol(x)) %>%
+          t
+      }
+      if (x_start >  ts_start) {
+        window(x, end = x_start - 1 / ts_freq) <- window(x_trim, end = x_start) %>%
+          matrix(., ncol = (x_start - ts_start) * ts_freq, nrow = ncol(x)) %>%
+          t
+      }
+      x
+    })
+  }
   
   resl <- list(
     tsm = tsm,
