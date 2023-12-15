@@ -10,7 +10,8 @@ prepate_data(
   tsl_n = NULL,
   tsl_p = NULL,
   ts_start = NULL,
-  ts_end = NULL
+  ts_end = NULL,
+  extend_weights = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,9 @@ function \code{initialize_settings}}
 \item{ts_start}{start date, e.g. \code{c(2000, 2)} or \code{2000.25}}
 
 \item{ts_end}{end date, e.g. \code{c(2000, 2)} or \code{2000.25}}
+
+\item{extend_weights}{logical indicating if missing weights at beginning/end
+of sample should be filled with the last/first available value}
 }
 \value{
 A list with five components:
