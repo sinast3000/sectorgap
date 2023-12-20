@@ -4,7 +4,7 @@
 \alias{update_nonlinear_constraints}
 \title{Non linear constraints update}
 \usage{
-update_nonlinear_constraints(state, model, settings, df_constr, data = data)
+update_nonlinear_constraints(state, model, settings, df_constr, data)
 }
 \arguments{
 \item{state}{multiple time series object with states}

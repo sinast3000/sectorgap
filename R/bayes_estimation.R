@@ -81,6 +81,7 @@ estimate_ssmodel <- function(
     message("Continue drawing for fitted object.")
     model <- fit$model
     settings <- fit$settings
+    data <- fit$data
     prior <- fit$prior
     burnin <- attr(fit, "burnin")
     thin <- attr(fit, "thin")

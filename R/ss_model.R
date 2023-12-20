@@ -371,7 +371,7 @@ update_nonlinear_constraints <- function(
   model, 
   settings,
   df_constr,
-  data = data
+  data
 ) {
   
   for (ig in df_constr$group) {
