@@ -7,22 +7,20 @@
 update_nonlinear_constraints(state, model, settings, df_constr, data = data)
 }
 \arguments{
-\item{model}{state space model object (unassigned)}
+\item{state}{multiple time series object with states}
+
+\item{model}{state space model object (with assigned parameters)}
 
 \item{settings}{list with model setting, in the format returned by the
 function \code{initialize_settings}}
+
+\item{df_constr}{data frame with constraint settings}
 
 \item{data}{list with at least two named components: \code{tsm} is a multiple
 time series object that contains all observation series, \code{weights}
 is a named list of time series with (nominal) weights, the list names
 correspond to the different groups, i.e., \code{group1, group2, subgroup1},
 if present in the model}
-
-\item{pars}{named vector with all parameters}
-
-\item{model_last}{state space model object (previous draw)}
-
-\item{df_constraints}{data frame with constraint settings}
 }
 \value{
 The state space model object \code{model} with updates matrices.
