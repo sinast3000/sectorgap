@@ -48,6 +48,7 @@
 #' fit <- estimate_ssmodel(
 #'   model = model, 
 #'   settings = settings, 
+#'   data = data,
 #'   prior = prior,
 #'   R = 100
 #' )
