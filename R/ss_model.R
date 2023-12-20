@@ -49,7 +49,7 @@ define_ssmodel <- function(
   
   # convert to time series list
   tsm <- data$tsm
-  weightl <- data$weights
+  weightl <- data$weights_growth
   tsl <- as.list(tsm)
   
   # settings to data frames
@@ -120,14 +120,15 @@ define_ssmodel <- function(
     for (ix in rownames(df_set$constr)) {
       df <- df_set$constr[ix, , drop = FALSE]
       
-      if (df$type == "trend") {
+      if (df$type == "trend" & df$linear) {
         names_expand <- c(names_expand, df$load_name, settings[[df$group]]$variable)
       }
     }
     
     # expand system
     for (iz in unique(names_expand)) {
-      sys <- add_lag(sys = sys, name = iz, type = df$type, lags = 1)
+      # sys <- add_lag(sys = sys, name = iz, type = df$type, lags = 1)
+      sys <- add_error(sys = sys, name = iz, type = df$type)
     }
     
     n_t <- NROW(tsm) 
@@ -141,23 +142,37 @@ define_ssmodel <- function(
   for (ix in rownames(df_set$constr)) {
     df <- df_set$constr[ix, , drop = FALSE]
 
-    idx_residual <- rep(FALSE, NCOL(weightl[[df$group]]))
-    if (df$residual) {
-      idx_residual <- colnames(weightl[[df$group]]) == settings[[df$group]]$name_residual
-    }
+    # idx_residual <- rep(FALSE, NCOL(weightl[[df$group]]))
+    # if (df$residual) {
+    #   idx_residual <- colnames(weightl[[df$group]]) == settings[[df$group]]$name_residual
+    # }
+    idx_residual <- colnames(weightl[[df$group]]) == "residual"
+    obs_names <- colnames(weightl[[df$group]])[!idx_residual]
     
-    sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", df$load_name), ] <- -1
-    sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", settings[[df$group]]$variable), ] <- t(weightl[[df$group]][, !idx_residual])
-
-    if (df$type == "trend") {
-      sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", df$load_name, "_L1"), ] <- 1
-      sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", settings[[df$group]]$variable, "_L1"), ] <- -t(weightl[[df$group]][, !idx_residual])
+    if (df$type == "drift") {
+      # sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", df$load_name), ] <- -1
+      sys$Zt[
+        paste0("constr_", df$type, "_", df$group), 
+        c("const", paste0(df$type, "_", obs_names)), 
+      ] <- t(weightl[[df$group]][, c("residual", obs_names)])
+    }
+    if (df$type == "trend" & df$linear) {
+      # # sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", df$load_name, "_L1"), ] <- 1
+      # # sys$Zt[paste0("constr_", df$type, "_", df$group), paste0(df$type, "_", settings[[df$group]]$variable, "_L1"), ] <- -t(weightl[[df$group]][, !idx_residual])
+      # sys$Zt[paste0("constr_", df$type, "_", df$group), paste0("terror_", df$load_name), ] <- -1
+      # sys$Zt[paste0("constr_", df$type, "_", df$group), paste0("terror_", settings[[df$group]]$variable), ] <- t(weightl[[df$group]][, !idx_residual])
+      # sys$Zt[paste0("constr_", df$type, "_", df$group), "const", ] <- weightl[[df$group]][, idx_residual]
       
+      sys$Zt[
+        paste0("constr_", df$type, "_", df$group), 
+        c("const", paste0("terror_", "_", obs_names)), 
+      ] <- t(weightl[[df$group]][, c("residual", obs_names)])
     }
         
-    if (df$residual) {
-      sys$Zt[paste0("constr_", df$type, "_", df$group), "const", ] <- weightl[[df$group]][, idx_residual]
-    }
+    # if (df$residual) {
+      # sys$Zt[paste0("constr_", df$type, "_", df$group), "const", ] <- weightl[[df$group]][, idx_residual]
+    # }
+    
     
   }
 
@@ -335,4 +350,52 @@ update_ssmodel <- function(
 
   return(model)
   
+}
+
+# ------------------------------------------------------------------------------
+
+#' Non linear constraints update
+#'
+#' @description Updates the system matrices of a state space model to include 
+#' non linear constraints.
+#'
+#' @param state multiple time series object with states
+#' @param model state space model object (with assigned parameters)
+#' @param df_constr data frame with constraint settings
+#' @inherit define_ssmodel
+#' 
+#' @return The state space model object \code{model} with updates matrices.
+#' @keywords internal
+update_nonlinear_constraints <- function(
+  state,
+  model, 
+  settings,
+  df_constr,
+  data = data
+) {
+  
+  for (ig in df_constr$group) {
+
+    # state names
+    state_names <- paste0("trend_", c(settings[[ig]]$load_name, settings[[ig]]$variable))
+    
+    # price weights
+    weights <- data$weights_level[[ig]]
+    residual <- weights[, "residual"]
+    weights <- weights[, colnames(weights) != "residual"]
+
+    # trends for aggregate and group
+    trends <- state[, state_names]
+
+    # constraint equation Rt * state = rt
+    Rt <- weights * settings$dfun_transform_inv(trends)
+    rt <- Reduce("+", as.list(Rt * trends - weights * settings$fun_transform_inv(trends))) - residual
+    
+    # assign constraints to Z
+    model$Z[paste0("constr_", "trend", "_", ig), state_names, ] <- t(Rt)
+    model$Z[paste0("constr_", "trend", "_", ig), "const", ] <- -rt
+    
+  }
+  
+  model
 }

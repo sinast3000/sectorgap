@@ -319,3 +319,49 @@ add_lag <- function(sys, name, type, lags = NULL) {
   
 }
 
+# ------------------------------------------------------------------------------
+
+#' Add error to state equation
+#'
+#' @inheritParams add_trend
+#' @inheritParams add_cycle
+#' 
+#' @return The input list \code{sys} with updated matrices.
+#'
+#' @keywords internal
+add_error <- function(sys, name, type) {
+  
+  k <- nrow(sys$Zt)
+  m <- nrow(sys$Tt)
+  n_var <- ncol(sys$Rt)
+  
+  obs_names <- rownames(sys$Zt)
+  state_names <- colnames(sys$Tt)
+  var_names <- colnames(sys$Qt)
+  
+  p_add <- 1
+  m <- nrow(sys$Tt)
+  sys$Zt <- cbind(sys$Zt, matrix(0, k, p_add))
+  sys$Tt <- rbind(cbind(sys$Tt, matrix(0, m, p_add)),
+                  cbind(matrix(0, p_add, m-1), cbind(diag(0, p_add), rep(0, p_add))))
+  sys$Rt <- rbind(sys$Rt, 
+                  matrix(0, p_add, ncol(sys$Rt)))
+  state_names_new <- paste0(substr(type, 1, 1), "error_", name)
+  
+  # update column, row and parameter names
+  colnames(sys$Zt) <- colnames(sys$Tt) <- rownames(sys$Tt) <- rownames(sys$Rt) <- c(state_names, state_names_new)
+  
+  # update empty observation covariance matrix
+  sys$Ht <- matrix(0, nrow(sys$Zt), nrow(sys$Zt))
+  colnames(sys$Ht) <- rownames(sys$Ht) <- rownames(sys$Zt)
+  
+  # update stationary and root components
+  sys$names$stationary <- c(sys$names$stationary, state_names_new)
+  
+  
+  sys$Rt[state_names_new, ] <- sys$Rt[paste0(type, "_", name), ] 
+  
+  return(sys)
+  
+}
+

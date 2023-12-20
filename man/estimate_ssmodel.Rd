@@ -7,6 +7,7 @@
 estimate_ssmodel(
   model,
   settings,
+  data,
   prior = initialize_prior(model),
   R = 10000,
   burnin = 0.5,
@@ -21,6 +22,12 @@ estimate_ssmodel(
 
 \item{settings}{list with model setting, in the format returned by the
 function \code{initialize_settings}}
+
+\item{data}{list with at least two named components: \code{tsm} is a multiple
+time series object that contains all observation series, \code{weights}
+is a named list of time series with (nominal) weights, the list names
+correspond to the different groups, i.e., \code{group1, group2, subgroup1},
+if present in the model}
 
 \item{prior}{list of matrices, each list item corresponds to one endogenous
 variable. See \code{initialize_prior}}

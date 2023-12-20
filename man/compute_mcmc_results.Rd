@@ -4,7 +4,15 @@
 \alias{compute_mcmc_results}
 \title{Results for sampled parameters and states}
 \usage{
-compute_mcmc_results(model, settings, mcmc, HPDIprob = NULL, fit = NULL, ...)
+compute_mcmc_results(
+  model,
+  settings,
+  mcmc,
+  data,
+  HPDIprob = NULL,
+  fit = NULL,
+  ...
+)
 }
 \arguments{
 \item{model}{state space model object, returned by the function
@@ -14,6 +22,12 @@ compute_mcmc_results(model, settings, mcmc, HPDIprob = NULL, fit = NULL, ...)
 function \code{initialize_settings}}
 
 \item{mcmc}{list with draws of parameters and states (including burnin phase)}
+
+\item{data}{list with at least two named components: \code{tsm} is a multiple
+time series object that contains all observation series, \code{weights}
+is a named list of time series with (nominal) weights, the list names
+correspond to the different groups, i.e., \code{group1, group2, subgroup1},
+if present in the model}
 
 \item{HPDIprob}{probability of highest posterior density interval, optional
 if \code{fit} is supplied}

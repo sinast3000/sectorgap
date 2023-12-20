@@ -72,7 +72,7 @@ transform_results <- function(
   HPDI <- HPDIprob * 100  
   
   # data
-  tsl_w <- data$weights
+  tsl_w <- data$weights_growth
   tsm_p <- data$prices
   
   # settings to data frames

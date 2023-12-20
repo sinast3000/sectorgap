@@ -24,6 +24,7 @@ compute_mcmc_results <- function(
   model,
   settings, 
   mcmc,
+  data,
   HPDIprob = NULL, 
   fit = NULL,
   ...
@@ -130,6 +131,7 @@ compute_mcmc_results <- function(
     parameters = df_param,    
     model = model,
     settings = settings,
+    data = data,
     mcmc = mcmc,
     prior = prior
   )

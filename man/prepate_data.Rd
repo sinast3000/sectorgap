@@ -35,7 +35,7 @@ of sample should be filled with the last/first available value}
 }
 \value{
 A list with five components:
-\item{tsm}{multiple time series object with all (transformed) endogneous
+\item{tsm}{multiple time series object with all (transformed) endogeneous
 variables}
 \item{real}{multiple time series object with real series of
 \code{agg, group1, group2}}
@@ -43,8 +43,12 @@ variables}
 \code{agg, group1, group2}}
 \item{prices}{multiple time series object with price series of
 \code{agg, group1, group2}}
-\item{weights}{list of multiple time series objects with weights for the
-constraints, i.e., for series \code{agg, group1, group2} if applicable}
+\item{weights_growth}{list of multiple time series objects with weights for
+the growth constraints, i.e., for series \code{group1, group2, subgroup1}
+if applicable}
+\item{weights_level}{list of multiple time series objects with weights for
+the non linear level constraints, i.e., for series
+\code{group1, group2, subgroup1} if applicable}
 }
 \description{
 Prepares the required input data, it performs the

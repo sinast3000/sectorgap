@@ -60,6 +60,7 @@
 estimate_ssmodel <- function(
   model, 
   settings, 
+  data,
   prior = initialize_prior(model), 
   R = 10000, 
   burnin = 0.5, 
@@ -136,7 +137,6 @@ estimate_ssmodel <- function(
     }
   )
   
-  
   # ----- Gibbs procedure
   
   # initialization
@@ -171,7 +171,7 @@ estimate_ssmodel <- function(
     }
     
     # step 1: states -----------------------------------------------------------
-    
+
     # apply simulation smoothing, conditional on parameters from step r-1
     state_smoothed <- tryCatch({
       ts(
@@ -185,6 +185,7 @@ estimate_ssmodel <- function(
         return(state_smoothed)
       }
     )
+    # ssmodel_k$y[is.na(model$y)] <- matmult3d(a = state_smoothed, b = ssmodel_k$Z)[is.na(model$y)]
     
     # step 2: trends -----------------------------------------------------------
     pars[hlp$step2$names] <- draw_trend_innovations(
@@ -231,13 +232,8 @@ estimate_ssmodel <- function(
     if (length(hlp$step4) > 0) {
       # compute Y for all variables simultaneously
       # substract constant and trend from observation
-      Y <- model$y[, endo] - ts(sapply(1:dim(ssmodel_k$Z)[3], function(x) {
-        ssmodel_k$Z[endo, hlp$idx$T_ncycle, x] %*% 
-          state_smoothed[x, hlp$idx$T_ncycle]
-      }) %>% t,
-        start = hlp$start, 
-        frequency = hlp$frequency
-      )
+      Y <- model$y[, endo] - 
+        matmult3d(b = ssmodel_k$Z[endo, hlp$idx$T_ncycle, ], a = state_smoothed[, hlp$idx$T_ncycle])
       colnames(Y) <- endo
   
       
@@ -257,7 +253,6 @@ estimate_ssmodel <- function(
           phiDistr = df_prior[, lx$phi, drop = FALSE]
         )[lx$pars_regression]
   
-        
       }
     }
     
@@ -296,6 +291,15 @@ estimate_ssmodel <- function(
       }
     )
     
+    # update non-linear constraints if present
+    ssmodel_k <- update_nonlinear_constraints(
+      state = state_smoothed,
+      model = ssmodel_k, 
+      settings = settings,
+      df_constr = hlp$linear_constraints,
+      data = data
+    )
+
   }
   close(pb)
   message("Done.")
@@ -337,7 +341,8 @@ estimate_ssmodel <- function(
     settings = settings, 
     HPDIprob = HPDIprob,
     mcmc = mcmc,
-    prior = prior
+    prior = prior,
+    data = data
   )
   # obtain results
   fit <- tryCatch({
@@ -479,6 +484,9 @@ helper_posterior_assignment <- function(
   
   # for one dimensional model
   if (is.null(hlp$idx$Z_endo)) hlp$idx$Z_endo <- endo
+  
+  # linear trend constraints
+  hlp$linear_constraints <- df_set$constr %>% filter(type == "trend", !linear)
 
   return(hlp)
 }

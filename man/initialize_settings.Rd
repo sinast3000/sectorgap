@@ -6,7 +6,8 @@
 \usage{
 initialize_settings(
   FUN_transform = function(x) 100 * log(x),
-  FUN_transform_inv = function(x) exp(x/100)
+  FUN_transform_inv = function(x) exp(x/100),
+  DFUN_transform_inv = function(x) 1/100 * exp(x/100)
 )
 }
 \arguments{
@@ -15,6 +16,10 @@ initialize_settings(
 
 \item{FUN_transform_inv}{inverse transformation function, the default is
 \code{function(x) exp(x / 100)}}
+
+\item{DFUN_transform_inv}{derivative of inverse transformation function, the
+default is \code{function(x) 1 exp(x / 100)}, only used if non-linear
+constraints are present}
 }
 \value{
 A nested list with settings for the following groups:
@@ -50,13 +55,14 @@ applicable for \code{group1, group2, subgroup1}}
 (for \code{group1, group2}) and which is used for the aggregation}
 \item{load_lag}{lags of the of the variable that all variables in the group
 load (for \code{group1, group2})}
-\item{name_residual}{name of the residual in case variables do not add up,
-and if aggregation constraints are present (for
-\code{group1, group2, subgroup1})}
 \item{constr_drift}{logical indicating if constraints for the drifts should
 be enforced}
 \item{constr_trends}{logical indicating if constraints for the trends
 should be enforced}
+\item{constr_trends_linear}{logical indicating if constraints for the
+trends are linear or nonlinear, the default is \code{FALSE} in which case
+the constraint is enforced on the level series, else, it is enforced on the
+growth rates.}
 \item{variable_neg}{variable names that are negative and thus need to be
 subtracted when constructing weights}
 The block \code{subgroup1} additionally contain the

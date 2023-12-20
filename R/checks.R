@@ -23,7 +23,7 @@ is.settings <- function(x, dfl = NULL, return.logical = FALSE) {
   
   opts <- list(
     lnames = c("agg", "group1", "subgroup1", "group2", "agggroup", "misc", 
-               "fun_transform", "fun_transform_inv"),
+               "fun_transform", "fun_transform_inv", "dfun_transform_inv"),
     trend = 0:4,
     cycle = 0:2,
     corr = c(NA, 0, 2, 4)
@@ -44,7 +44,8 @@ is.settings <- function(x, dfl = NULL, return.logical = FALSE) {
       !any(dfl$obs$variable_label %>% duplicated) &&
       !any(grepl("_", dfl$obs$variable)) &&
       !any(dfl$obs %>% select(group, group_label) %>% unique %>% .$group_label %>% duplicated) &&
-      all((dfl$loadings$loads_on %>% unique) %in% dfl$obs$variable)
+      all((dfl$loadings$loads_on %>% unique) %in% dfl$obs$variable) &&
+      all(dfl$constr %>% filter(!linear) %>% .$transform)
     y
   } else {
   
@@ -139,6 +140,20 @@ is.settings <- function(x, dfl = NULL, return.logical = FALSE) {
         call. = FALSE
       )
     }
+    
+    # check that transformation is in place for non linear constraints
+   df_tmp <- dfl$constr %>% filter(!linear, !transform)
+   if (NROW(df_tmp) > 0) {
+     name <- df_tmp$group %>% unique
+     stop(
+       paste0(
+         "Groups '",  
+         paste0(name, collapse = ", "), 
+         "' have non-linear constraint but no transformation is assigned, 
+         please respecify"), 
+       call. = FALSE
+     )
+   }
   }
   
 } 

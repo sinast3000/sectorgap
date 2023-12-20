@@ -9,6 +9,9 @@
 #' \code{function(x) 100 * log(x)}
 #' @param FUN_transform_inv inverse transformation function, the default is 
 #' \code{function(x) exp(x / 100)}
+#' @param DFUN_transform_inv derivative of inverse transformation function, the 
+#' default is \code{function(x) 1 exp(x / 100)}, only used if non-linear 
+#' constraints are present
 #' 
 #'   
 #' @return A nested list with settings for the following groups:
@@ -44,13 +47,14 @@
 #'   (for \code{group1, group2}) and which is used for the aggregation}
 #'   \item{load_lag}{lags of the of the variable that all variables in the group 
 #'   load (for \code{group1, group2})}
-#'   \item{name_residual}{name of the residual in case variables do not add up, 
-#'   and if aggregation constraints are present (for 
-#'   \code{group1, group2, subgroup1})}
 #'   \item{constr_drift}{logical indicating if constraints for the drifts should 
 #'   be enforced}
 #'   \item{constr_trends}{logical indicating if constraints for the trends 
 #'   should be enforced}   
+#'   \item{constr_trends_linear}{logical indicating if constraints for the 
+#'   trends are linear or nonlinear, the default is \code{FALSE} in which case 
+#'   the constraint is enforced on the level series, else, it is enforced on the 
+#'   growth rates.}   
 #'   \item{variable_neg}{variable names that are negative and thus need to be 
 #'   subtracted when constructing weights}
 #' The block \code{subgroup1} additionally contain the 
@@ -62,7 +66,8 @@
 #'         
 initialize_settings <- function(
   FUN_transform = function(x) 100 * log(x),
-  FUN_transform_inv = function(x) exp(x / 100)
+  FUN_transform_inv = function(x) exp(x / 100),
+  DFUN_transform_inv = function(x) 1 / 100 * exp(x / 100)
 ) {
   
   # save call
@@ -88,16 +93,15 @@ initialize_settings <- function(
     load_lag = 0,
     constr_drift = TRUE,
     constr_trend = TRUE,
+    constr_trend_linear = FALSE,
     variable = c(
       "vaA",
       "vaB",
       "vaC"
     ),
-    # prefix = "va",
     variable_neg = NULL,
     transform = TRUE,
     load_name = set$agg$variable,
-    name_residual = NULL,
     label = "Production",
     variable_label = c(
       "Prod. A: Goods-producing industries",
@@ -113,13 +117,13 @@ initialize_settings <- function(
     corr = 0,
     load_lag = 0:2,
     constr_trend = TRUE,
+    constr_trend_linear = FALSE,
     constr_drift = TRUE,
     variable = c(
       "fteA",
       "fteB",
       "fteC"
     ),    
-    # prefix = "fte",
     transform = TRUE,
     match_group1 = c(
       "vaA",
@@ -127,7 +131,6 @@ initialize_settings <- function(
       NA
     ),
     load_name = "employment",
-    # name_residual = "resempl",
     label = "FTE employment",
     variable_label = c(
       "FTE A: Goods-producing industries",
@@ -143,6 +146,7 @@ initialize_settings <- function(
     corr = 0,
     load_lag = 0,
     constr_trend = TRUE,
+    constr_trend_linear = FALSE,
     constr_drift = TRUE,
     variable = c(
       "exp1",
@@ -152,7 +156,6 @@ initialize_settings <- function(
     ), 
     variable_neg = "exp4",
     load_name = set$agg$variable,
-    name_residual = "resexp",
     transform = TRUE,
     label = "Expenditure",
     variable_label = c(
@@ -207,6 +210,7 @@ initialize_settings <- function(
   # transformation functions
   set$fun_transform <- FUN_transform
   set$fun_transform_inv <- FUN_transform_inv
+  set$dfun_transform_inv <- DFUN_transform_inv
   
   class(set) <- "settings"
   attr(set, "call") <- mc
@@ -298,30 +302,6 @@ settings_to_df <- function(x) {
       )
     }
   }  
-  # # constraint variables
-  # for (jx in c("group1", "subgroup1", "group2")) {
-  #   lx <- x[[jx]]
-  #   if (!is.null(lx$name_residual) & (lx$constr_drift | lx$constr_trend)) {
-  #     ix <- lx$name_residual
-  #     count <- count + 1
-  #     dfl[[count]] <- data.frame(
-  #       variable = ix,
-  #       variable_label = paste0("Residual contr. ", lx$label),
-  #       variable_neg = NA,
-  #       variable_pos = NA,
-  #       trend = lx$trend,
-  #       cycle = lx$cycle,
-  #       corr = NA,
-  #       constr_drift = ifelse(is.null(lx$constr_drift), NA, lx$constr_drift),
-  #       constr_trend = ifelse(is.null(lx$constr_trend), NA, lx$constr_trend),
-  #       constr_cycle = ifelse(is.null(lx$constr_cycle), NA, lx$constr_cycle),
-  #       group = paste0(jx, "_residual"),
-  #       group_label = paste0(lx$label, " residual"),
-  #       transform = FALSE
-  #     )
-  #   }
-  # }
-  
   df_obs <- do.call(rbind, dfl)
   
   #  ------ loadings
@@ -583,8 +563,7 @@ settings_to_df <- function(x) {
         trend = ifelse(is.null(lx$constr_trend), NA, lx$constr_trend),
         cycle = ifelse(is.null(lx$constr_cycle), NA, lx$constr_cycle),
         load_name = lx$load_name,
-        name_residual = ifelse(is.null(lx$name_residual), NA, lx$name_residual),
-        residual = ifelse(is.null(lx$name_residual), FALSE, TRUE)
+        linear = ifelse(is.null(lx$constr_trend), NA, lx$constr_trend_linear)
       )
     }
   }
@@ -595,6 +574,8 @@ settings_to_df <- function(x) {
       filter(value) %>% 
       dplyr::select(!value) %>%
       as.data.frame()
+    df_constr <- df_constr %>% mutate(linear = replace(linear, type != "trend", TRUE))
+    df_constr <- left_join(df_constr, df_obs %>% select(group, transform) %>% unique, by = "group")
   }
   
   dfl <- list(
