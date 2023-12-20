@@ -19,7 +19,7 @@ is.settings <- function(x, dfl = NULL, return.logical = FALSE) {
   
   # to avoid RMD check note
   group <- group_label <- . <- idiosynchratic <- gap <- common <- 
-    contr <- fit <- NULL
+    contr <- fit <- linear <- NULL
   
   opts <- list(
     lnames = c("agg", "group1", "subgroup1", "group2", "agggroup", "misc", 

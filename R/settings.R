@@ -238,7 +238,7 @@ settings_to_df <- function(x) {
   type <- loads_on <- . <- variable <- variable_label <- group <- group_label <-
     parameter_name <- lag_direct <- lag_indirect <- max_lag <- max_lag_extra <-
     trend <- corr <- variable2 <- type2 <- cycle <- state <- state_lag <- 
-    max_lag_AR <- value <- NULL
+    max_lag_AR <- value <- linear <- NULL
   
   # check if labels are present, if not, use variable/group names
   groups <- c("agg", "group1", "subgroup1", "group2", "agggroup")

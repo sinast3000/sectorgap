@@ -53,6 +53,7 @@
 #' fit <- estimate_ssmodel(
 #'   model = model, 
 #'   settings = settings, 
+#'   data = data,
 #'   prior = prior,
 #'   R = 100
 #' )
@@ -432,7 +433,7 @@ helper_posterior_assignment <- function(
 ) {
   
   # to avoid RMD check note
-  type <- variable <- . <- NULL
+  type <- variable <- . <- linear <- NULL
   
   # helper list for posterior draws
   hlp <- list(
