@@ -176,11 +176,16 @@ estimate_ssmodel <- function(
 
     # apply simulation smoothing, conditional on parameters from step r-1
     state_smoothed <- tryCatch({
-      ts(
+      x <- ts(
         simulateSSM(ssmodel_k, type = "states", nsim = 1)[,,1],
         start = hlp$start, 
         frequency = hlp$frequency
-      )},
+      )
+      if (any(is.nan(x))) {
+        stop("NaN in state")
+      }
+      x
+      },
       error = function(cont) {
         warning("Simulation smoother problem, skipping draw.")
         r <<- r - 1
@@ -188,6 +193,15 @@ estimate_ssmodel <- function(
       }
     )
     # ssmodel_k$y[is.na(model$y)] <- matmult3d(a = state_smoothed, b = ssmodel_k$Z)[is.na(model$y)]
+    
+    # update non-linear constraints if present
+    ssmodel_k <- update_nonlinear_constraints(
+      state = state_smoothed,
+      model = ssmodel_k, 
+      settings = settings,
+      df_constr = hlp$linear_constraints,
+      data = data
+    )
     
     # step 2: trends -----------------------------------------------------------
     pars[hlp$step2$names] <- draw_trend_innovations(
@@ -291,15 +305,6 @@ estimate_ssmodel <- function(
         r <<- r - 1
         return(ssmodel_k)
       }
-    )
-    
-    # update non-linear constraints if present
-    ssmodel_k <- update_nonlinear_constraints(
-      state = state_smoothed,
-      model = ssmodel_k, 
-      settings = settings,
-      df_constr = hlp$linear_constraints,
-      data = data
     )
 
   }
