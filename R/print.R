@@ -200,7 +200,7 @@ print.prior <- function(x, call = TRUE, check = TRUE, ...) {
   cat("Data frame object of class prior\n")
   cat("\n--------------- Normally distributed parameters:\n\n")
   print(df_normal, row.names = FALSE)
-  cat("\n--------------- Inverse-gamma distributed parameters:\n\n")
+  cat("\n--------------- Inverse-gamma/wishart distributed parameters:\n\n")
   print(df_igamma, row.names = FALSE)
   
 }
