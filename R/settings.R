@@ -128,7 +128,7 @@ initialize_settings <- function(
     match_group1 = c(
       "vaA",
       "vaB",
-      NA
+      "vaC"
     ),
     load_name = "employment",
     label = "FTE employment",
