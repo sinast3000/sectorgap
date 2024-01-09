@@ -42,7 +42,7 @@ plot_time_series <- function(
   # x axis settings
   dates <- sort(unique(df$date))
   if (is.null(plot_start)) plot_start <- floor(min(dates)) - floor(min(dates)) %% n_sep
-  if (is.null(plot_end)) plot_end <- ceiling(max(dates)) + ceiling(max(dates)) %% n_sep - 1
+  if (is.null(plot_end)) plot_end <- ceiling(max(dates)) + n_sep - ceiling(max(dates)) %% n_sep
 
   # manipulate highighted area such they are drawn on borders
   highlight <- !is.null(highlighted_area)
