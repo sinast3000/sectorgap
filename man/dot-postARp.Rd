@@ -2,8 +2,7 @@
 % Please edit documentation in R/bayes_gibbs_steps.R
 \name{.postARp}
 \alias{.postARp}
-\title{Draws the parameters of an AR process (AR parameters and variance).
-.}
+\title{Draws the parameters of an AR process (AR parameters and variance).}
 \usage{
 .postARp(Y, phi, phiDistr, sigma, sigmaDistr, const = NULL, constDistr = NULL)
 }
@@ -27,7 +26,6 @@ A named vector of drawn parameters.
 }
 \description{
 Draws the parameters of an AR process (AR parameters and variance).
-.
 }
 \details{
 See "Chib, Siddhartha. "Bayes regression with autoregressive
