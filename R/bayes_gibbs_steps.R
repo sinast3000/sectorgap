@@ -218,7 +218,7 @@ draw_trend_innovations <- function(
 # ------------------------------------------------------------------------------
 
 #' Draws the parameters of an AR process (AR parameters and variance).
-#' .
+#' 
 #' @inheritParams .postRegression
 #' 
 #' @return A named vector of drawn parameters.
