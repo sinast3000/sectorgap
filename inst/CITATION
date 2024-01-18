@@ -1,18 +1,15 @@
 bibentry(
   bibtype = "Article",
-  title = "Improving output gap estimation--a bottom-up approach",
+  title = "sectorgap: An {R} package for consistent economic trend cycle decomposition",
   author = c(person(given = "Sina", 
              family = "Streicher", 
-             email = "streicher@kof.ethz.ch"),
-             person(given = "Alexander", 
-             family = "Rathke", 
-             email = "rathke@kof.ethz.ch")),
+             email = "streicher@kof.ethz.ch")),
   journal = "{KOF} Working Papers",
-  number  = "513",
-  year = "2023",
-  textVersion =   paste("Rathke A. and S. Streicher (2023).",
-        "Improving output gap estimation--a bottom-up approach",
-        "KOF Working Paper 513."),
+  number  = "514",
+  year = "2024",
+  textVersion =   paste("Streicher, S. (2024).",
+        "sectorgap: An R package for consistent economic trend cycle decomposition.",
+        "KOF Working Papers 514."),
   
   header = "To cite sectorgap in publications use:"
 )
