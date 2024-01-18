@@ -14,7 +14,7 @@ If you use 'sectorgap' in your paper, please cite it properly, see `citation("se
 
 ## Details
 
-Determining potential output and the output gap---two inherently unobservable variables---is a major challenge for macroeconomists. This paper presents the R package sectorgap, which features a flexible modeling and estimation framework for a multivariate Bayesian state space model identifying economic output fluctuations consistent with subsectors of the economy. The proposed model is able to capture various correlations between output and a set of aggregate as well as subsector indicators. Estimation of the latent states and parameters is achieved using a simple Gibbs sampling procedure and various plotting options facilitate the assessment of the results. 
+Determining potential output and the output gap - two inherently unobservable variables - is a major challenge for macroeconomists. This paper presents the R package sectorgap, which features a flexible modeling and estimation framework for a multivariate Bayesian state space model identifying economic output fluctuations consistent with subsectors of the economy. The proposed model is able to capture various correlations between output and a set of aggregate as well as subsector indicators. Estimation of the latent states and parameters is achieved using a simple Gibbs sampling procedure and various plotting options facilitate the assessment of the results. 
 
 ## Main features
 
