@@ -16,7 +16,6 @@ Imports:
     KFAS,
     zoo,
     ggplot2,
-    gridExtra,
     MCMCpack,
     dplyr,
     tidyr,
