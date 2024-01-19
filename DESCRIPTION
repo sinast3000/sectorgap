@@ -1,6 +1,6 @@
 Package: sectorgap
 Type: Package
-Title: An R package for consistent economic trend cycle decomposition
+Title: An R Package for Consistent Economic Trend Cycle Decomposition
 Version: 0.1.0
 Authors@R: 
     person("Sina", "Streicher", , "streicher.sina@gmail.com", 
