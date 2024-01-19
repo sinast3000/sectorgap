@@ -40,7 +40,7 @@
 #'   \code{group1, group2, subgroup1} if applicable}
 #'
 #' @importFrom stats window start end
-#' @importFrom dplyr %>%
+#' @importFrom dplyr %>% last first
 #' 
 #' @export
 #' @examples
@@ -244,6 +244,7 @@ prepate_data <- function(
 #' @return A time series list with weights.
 #' 
 #' @importFrom stats window<-
+#' @importFrom dplyr last first
 #' @keywords internal
 compute_weights <- function(tsl_r, tsl_n, idx, pos, neg, weight_type = "growth") {
   

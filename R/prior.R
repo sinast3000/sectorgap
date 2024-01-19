@@ -36,7 +36,7 @@
 #'    \code{par1} and \code{par2}}
 #'  \item{distribution}{name of prior distribution}
 #'
-#' @importFrom dplyr %>% mutate
+#' @importFrom dplyr %>% mutate arrange
 #'
 #' @export
 #' @examples

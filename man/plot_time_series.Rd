@@ -57,8 +57,6 @@ number of plot columns \code{n_col}}
 number of plot rows implied by \code{n_col}}
 
 \item{units}{units for plot size (\code{"in", "cm", "mm", or "px"})}
-
-\item{fit}{fitted object}
 }
 \value{
 nothing

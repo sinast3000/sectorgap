@@ -3,7 +3,6 @@
 #' 
 #' @description Creates a set of time series plots of the results.
 #'
-#' @param fit fitted object
 #' @inheritParams define_ssmodel
 #' @inheritParams plot.ss_fit
 #' 
