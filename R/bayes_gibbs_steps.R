@@ -5,7 +5,7 @@
 #' This is a wrapper function that draws the parameters of the output gap for 
 #' different cycle specifications
 #'
-#' @inheritParams .postRegression
+#' @inheritParams post_regression
 #' 
 #' @return A named vector of drawn parameters.
 #' @keywords internal
@@ -19,7 +19,7 @@ draw_output_gap <- function(
   
   if (length(phi)>0) {
     # AR cycle
-    x <-.postARp(
+    x <-postARp(
       Y = Y,
       phi = phi,
       phiDistr = phiDistr,
@@ -122,7 +122,7 @@ draw_trend_innovations <- function(
 #' @importFrom stats rgamma
 #' 
 #' @keywords internal
-.postRegression <- function(
+post_regression <- function(
   Y, 
   X, 
   beta = NULL, 
@@ -157,7 +157,7 @@ draw_trend_innovations <- function(
   if (p > 0) {
     eps <- as.matrix(Y - X %*% betaLast, ncol = 1)
     
-    phir <- .postARp_phi(
+    phir <- postARp_phi(
       Y = eps, 
       phi = phi, 
       phiDistr = phiDistr, 
@@ -186,12 +186,12 @@ draw_trend_innovations <- function(
     # dependent prior
     Astar <- A0 + t(Xstar) %*% Xstar
     betastar <- solve(Astar) %*% (A0 %*% beta0 + t(Xstar) %*% Ystar)
-    betar <- .mvrnorm(mu = betastar, sigma = sigmaLast * solve(Astar))
+    betar <- mvrnorm(mu = betastar, sigma = sigmaLast * solve(Astar))
   } else {
     # independent loading and variance prior
     Astar <- A0 + 1/sigmaLast * t(Xstar) %*% Xstar
     betastar <- solve(Astar) %*% (A0 %*% beta0 + 1/sigmaLast * t(Xstar) %*% Ystar)
-    betar <- .mvrnorm(mu = betastar, sigma = solve(Astar))
+    betar <- mvrnorm(mu = betastar, sigma = solve(Astar))
   }
   
   # 3) sigma
@@ -219,7 +219,7 @@ draw_trend_innovations <- function(
 
 #' Draws the parameters of an AR process (AR parameters and variance).
 #' 
-#' @inheritParams .postRegression
+#' @inheritParams post_regression
 #' 
 #' @return A named vector of drawn parameters.
 #' 
@@ -229,7 +229,7 @@ draw_trend_innovations <- function(
 #'  
 #' @importFrom stats rgamma
 #' @keywords internal
-.postARp <- function(Y, phi, phiDistr, sigma, sigmaDistr, const = NULL, constDistr = NULL) {
+postARp <- function(Y, phi, phiDistr, sigma, sigmaDistr, const = NULL, constDistr = NULL) {
 
   # last draw
   sigmaLast <- sigma
@@ -242,7 +242,7 @@ draw_trend_innovations <- function(
   
   # 1) phi
   eps <- Y
-  phir <- .postARp_phi(
+  phir <- postARp_phi(
     Y = eps, 
     phi = phi, 
     phiDistr = phiDistr, 
@@ -279,7 +279,7 @@ draw_trend_innovations <- function(
 
 #' Draws the autoregressive parameters of an AR process (AR parameters only).
 #' .
-#' @inheritParams .postRegression
+#' @inheritParams post_regression
 #' 
 #' @return A named vector of drawn parameters.
 #' 
@@ -287,7 +287,7 @@ draw_trend_innovations <- function(
 #'  errors: A Gibbs sampling approach." Journal of econometrics 58.3 (1993): 
 #'  275-294."
 #' @keywords internal
-.postARp_phi<- function(Y, phi, phiDistr, sigma, const = NULL, constDistr = NULL) {
+postARp_phi<- function(Y, phi, phiDistr, sigma, const = NULL, constDistr = NULL) {
 
   # last draw
   phiLast <- c(const, phi)
@@ -316,7 +316,7 @@ draw_trend_innovations <- function(
   alpha_ic <- 0
   count <- 0
   while (alpha_ic == 0) {
-    phir <- .mvrnorm(mu = phistar, sigma = solve(PHIstar))
+    phir <- mvrnorm(mu = phistar, sigma = solve(PHIstar))
     # check stationarity
     alpha_ic <- all(abs(polyroot(z = c(1, -phir[(nc+1):(nc+p)]))) > 1)
     count <- count + 1
@@ -336,7 +336,7 @@ draw_trend_innovations <- function(
 
 #' Draws a variance from an inverse Wishart distribution.
 #' 
-#' @inheritParams .postRegression
+#' @inheritParams post_regression
 #' @param nu degrees of freedom, \code{nu>p-1}
 #' @param s scale matrix, \code{p x p}
 #' 
@@ -374,7 +374,7 @@ draw_variance_scalar <- function(Y, nu, s) {
 #'
 #' @importFrom stats rnorm
 #' @keywords internal
-.mvrnorm <- function(mu, sigma) {
+mvrnorm <- function(mu, sigma) {
   # tolerance regarding positive-definiteness of the covariance matrix
   tol <- 1e-08
   # check dimension
@@ -402,7 +402,7 @@ draw_variance_scalar <- function(Y, nu, s) {
 
 #' Draws a variance from an inverse Wishart distribution.
 #' .
-#' @inheritParams .postRegression
+#' @inheritParams post_regression
 #' @param nu degrees of freedom, \code{nu>p-1}
 #' @param Phi scale matrix, \code{p x p}
 #' 

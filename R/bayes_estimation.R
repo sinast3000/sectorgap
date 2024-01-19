@@ -216,7 +216,7 @@ estimate_ssmodel <- function(
     for (x in seq_len(length(hlp$step2AR))) {
       lx <- hlp$step2AR[[x]]
       
-      pars[c(lx$const, lx$phi)] <- .postARp_phi(
+      pars[c(lx$const, lx$phi)] <- postARp_phi(
         Y = state_smoothed[, lx$state], 
         phi = pars[lx$phi], 
         phiDistr = df_prior[, lx$phi, drop = FALSE], 
@@ -258,7 +258,7 @@ estimate_ssmodel <- function(
         lx <- hlp$step4[[x]]
   
         # draw parameters
-        pars[lx$pars_regression] <- .postRegression(
+        pars[lx$pars_regression] <- post_regression(
           Y = Y[, x], 
           X = state_smoothed[, lx$Xnames], 
           beta = pars[lx$load], 
