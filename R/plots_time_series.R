@@ -7,7 +7,7 @@
 #' @inheritParams define_ssmodel
 #' @inheritParams plot.ss_fit
 #' 
-#' @import dplyr
+#' @importFrom dplyr %>% filter mutate select distinct pull full_join rename
 #' @importFrom grDevices hcl.colors
 #' @importFrom stats aggregate
 #' 
