@@ -1,11 +1,11 @@
 Package: sectorgap
 Type: Package
-Title: An R Package for Consistent Economic Trend Cycle Decomposition
+Title: Consistent Economic Trend Cycle Decomposition
 Version: 0.1.0
 Authors@R: 
     person("Sina", "Streicher", , "streicher.sina@gmail.com", 
            role = c("aut", "cre"), comment = c(ORCID = "0000-0001-7848-1842"))
-Description: Determining potential output and the output gap - two inherently unobservable variables - is a major challenge for macroeconomists. sectorgap features a flexible modeling and estimation framework for a multivariate Bayesian state space model identifying economic output fluctuations consistent with subsectors of the economy. The proposed model is able to capture various correlations between output and a set of aggregate as well as subsector indicators. Estimation of the latent states and parameters is achieved using a simple Gibbs sampling procedure and various plotting options facilitate the assessment of the results. 
+Description: Determining potential output and the output gap - two inherently unobservable variables - is a major challenge for macroeconomists. 'sectorgap' features a flexible modeling and estimation framework for a multivariate Bayesian state space model identifying economic output fluctuations consistent with subsectors of the economy. The proposed model is able to capture various correlations between output and a set of aggregate as well as subsector indicators. Estimation of the latent states and parameters is achieved using a simple Gibbs sampling procedure and various plotting options facilitate the assessment of the results. For details on the methodology and an illustrative example, see Streicher (2024) <https://www.research-collection.ethz.ch/handle/20.500.11850/653682>.
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
