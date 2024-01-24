@@ -184,8 +184,8 @@ prepate_data <- function(
   tsl_r <- lapply(tsl_r, window, start = ts_start, end = ts_end, extend = TRUE)
   tsl_p <- lapply(tsl_p, window, start = ts_start, end = ts_end, extend = TRUE)
   tsl_n <- lapply(tsl_n, window, start = ts_start, end = ts_end, extend = TRUE)
-  tsl_wgrowth <- lapply(tsl_wgrowth, window, start = ts_start, end = ts_end, extend = TRUE)
-  tsl_wlevel <- lapply(tsl_wlevel, window, start = ts_start, end = ts_end, extend = TRUE)
+  if (length(tsl_wgrowth) > 0) tsl_wgrowth <- lapply(tsl_wgrowth, window, start = ts_start, end = ts_end, extend = TRUE)
+  if (length(tsl_wlevel) > 0) tsl_wlevel <- lapply(tsl_wlevel, window, start = ts_start, end = ts_end, extend = TRUE)
   tsm <- window(tsm, start = ts_start, end = ts_end, extend = TRUE)
   
   # extend weights if necessary
@@ -209,8 +209,8 @@ prepate_data <- function(
       }
       x
     })
-    tsl_wgrowth <- fun_extend_weights(y = tsl_wgrowth)
-    tsl_wlevel <- fun_extend_weights(y = tsl_wlevel)
+    if (length(tsl_wgrowth) > 0) tsl_wgrowth <- fun_extend_weights(y = tsl_wgrowth)
+    if (length(tsl_wlevel) > 0) tsl_wlevel <- fun_extend_weights(y = tsl_wlevel)
   }
   
   resl <- list(
