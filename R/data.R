@@ -158,24 +158,24 @@ prepate_data <- function(
   
   # add residual for constraints if necessary
   for (ig in c("group1", "group2", "subgroup1")) {
-
-    # idx <- c(settings$agg$variable, settings[[ig]]$variable)
-    idx <- c(settings[[ig]]$load_name, settings[[ig]]$variable)
-    
-    # growth residual
-    ts_residual <- Reduce("+", as.list(diff(tsm[, idx]) * -tsl_wgrowth[[ig]]))  %>% 
-      na.trim  %>%
-      hpfilter(., lambda = 1600)
-    tsl_wgrowth[[ig]] <- cbind(tsl_wgrowth[[ig]], ts_residual)
-    colnames( tsl_wgrowth[[ig]]) <- c(idx, "residual")
-
-    # level residual
-    ts_residual <- (Reduce("+", as.list(do.call(cbind, tsl[idx]) * -tsl_wlevel[[ig]]))) %>%
-      na.trim  %>%
-      hpfilter(., lambda = 1600)
-    tsl_wlevel[[ig]] <- cbind(tsl_wlevel[[ig]], ts_residual)
-    colnames(tsl_wlevel[[ig]]) <- c(idx, "residual")
-    
+    if (!is.null(settings[[ig]])) {
+      # idx <- c(settings$agg$variable, settings[[ig]]$variable)
+      idx <- c(settings[[ig]]$load_name, settings[[ig]]$variable)
+      
+      # growth residual
+      ts_residual <- Reduce("+", as.list(diff(tsm[, idx]) * -tsl_wgrowth[[ig]]))  %>% 
+        na.trim  %>%
+        hpfilter(., lambda = 1600)
+      tsl_wgrowth[[ig]] <- cbind(tsl_wgrowth[[ig]], ts_residual)
+      colnames( tsl_wgrowth[[ig]]) <- c(idx, "residual")
+  
+      # level residual
+      ts_residual <- (Reduce("+", as.list(do.call(cbind, tsl[idx]) * -tsl_wlevel[[ig]]))) %>%
+        na.trim  %>%
+        hpfilter(., lambda = 1600)
+      tsl_wlevel[[ig]] <- cbind(tsl_wlevel[[ig]], ts_residual)
+      colnames(tsl_wlevel[[ig]]) <- c(idx, "residual")
+    }
   }
   
   # cut data window
