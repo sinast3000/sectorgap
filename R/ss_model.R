@@ -165,7 +165,7 @@ define_ssmodel <- function(
       
       sys$Zt[
         paste0("constr_", df$type, "_", df$group), 
-        c("const", paste0("terror_", "_", obs_names)), 
+        c("const", paste0("terror", "_", obs_names)), 
       ] <- t(weightl[[df$group]][, c("residual", obs_names)])
     }
         
