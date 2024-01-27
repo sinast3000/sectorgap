@@ -249,7 +249,7 @@ estimate_ssmodel <- function(
       # compute Y for all variables simultaneously
       # substract constant and trend from observation
       Y <- model$y[, endo] - 
-        matmult3d(b = ssmodel_k$Z[endo, hlp$idx$T_ncycle, ], a = state_smoothed[, hlp$idx$T_ncycle])
+        matmult3d(b = ssmodel_k$Z[endo, hlp$idx$T_ncycle, , drop = FALSE], a = state_smoothed[, hlp$idx$T_ncycle])
       colnames(Y) <- endo
   
       
@@ -493,7 +493,7 @@ helper_posterior_assignment <- function(
   if (is.null(hlp$idx$Z_endo)) hlp$idx$Z_endo <- endo
   
   # linear trend constraints
-  hlp$linear_constraints <- df_set$constr %>% filter(type == "trend", !linear)
+  if (!is.null(df_set$constr)) hlp$linear_constraints <- df_set$constr %>% filter(type == "trend", !linear)
 
   return(hlp)
 }

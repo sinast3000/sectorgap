@@ -142,18 +142,20 @@ is.settings <- function(x, dfl = NULL, return.logical = FALSE) {
     }
     
     # check that transformation is in place for non linear constraints
-   df_tmp <- dfl$constr %>% filter(!linear, !transform)
-   if (NROW(df_tmp) > 0) {
-     name <- df_tmp$group %>% unique
-     stop(
-       paste0(
-         "Groups '",  
-         paste0(name, collapse = ", "), 
-         "' have non-linear constraint but no transformation is assigned, 
-         please respecify"), 
-       call. = FALSE
-     )
-   }
+    if (!is.null(dfl$constr)) {
+      df_tmp <- dfl$constr %>% filter(!linear, !transform)
+      if (NROW(df_tmp) > 0) {
+        name <- df_tmp$group %>% unique
+        stop(
+          paste0(
+            "Groups '",  
+            paste0(name, collapse = ", "), 
+            "' have non-linear constraint but no transformation is assigned, 
+            please respecify"), 
+          call. = FALSE
+        )
+      }
+    }
   }
   
 } 
